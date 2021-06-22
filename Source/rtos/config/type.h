@@ -1,0 +1,150 @@
+/******************************************************************************
+ * (C) Copyright 2020 Anhui Domain Compute Co.Ltd
+ * FILE NAME:    type.h
+ * DESCRIPTION:
+ * 
+ * DATE BEGUN:   2021/06/01
+ * BY:           feifei.xu
+ * PRODUCT NAME:
+ * APPLICATION:
+ * TARGET H/W:
+ * DOC REF:
+ *****************************************************************************
+ */
+
+#ifndef __TYPE_H__
+#define __TYPE_H__
+
+/*****************************************************************************
+**#include 
+*****************************************************************************/
+
+
+
+/*****************************************************************************
+**  typedef
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Constant Macro Definition
+*****************************************************************************/
+typedef   	char 					CHAR;
+typedef   	unsigned char 		    UCHAR;
+typedef     unsigned char 	        BOOL;
+typedef     signed char             INT8;  
+typedef     unsigned char           UINT8;  
+typedef     short                   INT16;  
+typedef     unsigned short          UINT16;  
+typedef     long                    INT32;  
+typedef     unsigned long           UINT32;  
+typedef     long long               INT64;  
+typedef     unsigned long long      UINT64;  
+typedef     float                   FLOAT;  
+typedef     double                  DOUBLE;  
+typedef     void                    VOID;
+
+typedef signed char                 int8_t;
+typedef unsigned char               uint8_t;
+typedef short                       int16_t;
+typedef unsigned short              uint16_t;
+typedef int                         int32_t;
+typedef unsigned int                uint32_t;
+typedef long long                   int64_t;
+typedef unsigned long long          uint64_t;
+
+#ifndef OK
+#define OK           0
+#endif
+
+#ifndef ERROR
+#define ERROR       -1
+#endif
+
+#ifndef NG
+#define NG          1
+#endif
+
+#ifndef TRUE
+#define TRUE        1
+#endif
+
+#ifndef FALSE
+#define FALSE       0
+#endif
+
+#ifndef NULL
+#define NULL        (void*)0
+#endif
+
+#ifndef ON
+#define ON          1
+#endif
+
+#ifndef OFF
+#define OFF         0
+#endif
+
+#ifndef ENABLE
+#define ENABLE          1
+#endif
+
+#ifndef DISABLE
+#define DISABLE         0
+#endif
+
+#ifndef LOW
+#define LOW          0
+#endif
+
+#ifndef HIGH
+#define HIGH         1
+#endif
+/*****************************************************************************
+** System Macro Definition
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Action Macro Definition
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Config Macro Definition
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Task Macro Definition
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Variables
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Constants
+*****************************************************************************/
+
+
+/*****************************************************************************
+** Function prototypeseb
+*****************************************************************************/
+
+
+/*****************************************************************************
+** other
+*****************************************************************************/
+
+
+/****************************************************************************/
+
+#endif	//__TYPE_H__
+
+/*****************************************************************************
+** End File
+*****************************************************************************/
+
