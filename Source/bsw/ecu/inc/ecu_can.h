@@ -83,7 +83,7 @@ UINT8 ApiCan2Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
 UINT8 ApiCan0ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
 UINT8 ApiCan1ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
 UINT8 ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
-BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count);
+BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count);
 BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count);
 BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count);
 /*****************************************************************************

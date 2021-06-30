@@ -21,7 +21,6 @@
 
 /* RTOS系统运行所需头文件 */
 
-#include "ymodem.h"
 
 
 /*****************************************************************************
@@ -45,7 +44,6 @@
 typedef  void (*pFunction)(void); //定义void函数指针类型，
 pFunction Jump_To_Application; //它可以接受任何类型函数的赋值
 uint32_t JumpAddress;
-uint8_t tab_133[PACKET_SIZE + PACKET_OVERHEAD] =  { 0 };
 
 /*****************************************************************************
 ** static constants
@@ -61,27 +59,7 @@ uint8_t tab_133[PACKET_SIZE + PACKET_OVERHEAD] =  { 0 };
 ** function prototypes
 *****************************************************************************/
 
-/****************************************************************************/
-/**
- * Function Name: JumpToApp
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  create this function
- ****************************************************************************/
 
-static void JumpToApp()
-{
-	if(*(volatile uint32_t*)APP_ADDRESS == 0x10020000 ) //判断APP空间的首个字内容是否为栈顶地址0x10020000，正确则说明APP程序已经写入
-	{
-	SYS_VECTOFF = APP_ADDRESS ; //设置向量表偏移值，即重映射向量表，这对中断服务函数正确执行至关重要
-	JumpAddress = *(volatile uint32_t*) (APP_ADDRESS + 4); //获取APP的startup()入口地址
-	Jump_To_Application = (pFunction) JumpAddress; //将startup()入口地址赋值给函数指针
-	
-	Jump_To_Application(); //使用新的函数指针，转向执行APP的startup()函数，这将导致APP程序启动
-	}
-}
 
 /****************************************************************************/
 /**
@@ -110,17 +88,14 @@ void main()
 	ApiLedControl(3,TRUE);//开3个灯，表示FBL状态
 	
 	
-	// TaskInit();
-	// vTaskStartScheduler();
-	
 	
 	for (;;)
 	{
-		u64Count=Ymodem_Receive(tab_133);
+	// 	u64Count=Ymodem_Receive(tab_133);
 		if(u64Count>99)
 		{
 			JumpToApp();
-		}		
+		}			
 		// else if(u64Count>=5000)
 		// {
 		// 	ApiLedControl(2,FALSE);

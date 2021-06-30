@@ -84,7 +84,7 @@ void App_Led_Handler10ms(void)
 			case LED_CONST_LIGHT:
                 app_model[u16_i].u16_slow_delay_cnt = 0X00;
                 app_model[u16_i].u16_quick_delay_cnt = 0X00;
-				(void)GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(u16_i));
+				(void)ApiGpioOutputHigh(App_Led_GetModelGpio(u16_i));
 				break;
 
 			case LED_SLOW_LIGHT:
@@ -129,7 +129,7 @@ static void App_Led_SlowLight(UINT8 u8_index,UINT16* u16_delay,const UINT16 c_u1
 	}
 	else
 	{
-		GPIO_OUTPUT_TURN(u8_index);
+		ApiGpioOutputTurn(u8_index);
 		*u16_delay = c_u16_time;
 	}
 }
@@ -142,48 +142,48 @@ void ApiLedControl(LED_NAME_E e_index,BOOL b_flag)
 	case RED_LED:
 		if(TRUE == b_flag)
 		{
-			GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(APP_CAN_LED));
+			ApiGpioOutputHigh(App_Led_GetModelGpio(APP_CAN_LED));
 		}
 		else
 		{
-			GPIO_OUTPUT_LOW(App_Led_GetModelGpio(APP_CAN_LED));
+			ApiGpioOutputLow(App_Led_GetModelGpio(APP_CAN_LED));
 		}
 		break;
 
 	case YELLOW_LED:
 		if(TRUE == b_flag)
 		{
-			GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(APP_GPS_LED));
+			ApiGpioOutputHigh(App_Led_GetModelGpio(APP_GPS_LED));
 		}
 		else
 		{
-			GPIO_OUTPUT_LOW(App_Led_GetModelGpio(APP_GPS_LED));
+			ApiGpioOutputLow(App_Led_GetModelGpio(APP_GPS_LED));
 		}
 		break;
 
 	case GREEN_LED:
 		if(TRUE == b_flag)
 		{
-			GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(APP_LTE_LED));
+			ApiGpioOutputHigh(App_Led_GetModelGpio(APP_LTE_LED));
 		}
 		else
 		{
-			GPIO_OUTPUT_LOW(App_Led_GetModelGpio(APP_LTE_LED));
+			ApiGpioOutputLow(App_Led_GetModelGpio(APP_LTE_LED));
 		}
 		break;
 
 	case ALL_LED:
 		if(TRUE == b_flag)
 		{
-			GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(APP_CAN_LED));
-			GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(APP_GPS_LED));
-			GPIO_OUTPUT_HIGH(App_Led_GetModelGpio(APP_LTE_LED));
+			ApiGpioOutputHigh(App_Led_GetModelGpio(APP_CAN_LED));
+			ApiGpioOutputHigh(App_Led_GetModelGpio(APP_GPS_LED));
+			ApiGpioOutputHigh(App_Led_GetModelGpio(APP_LTE_LED));
 		}
 		else
 		{
-			GPIO_OUTPUT_LOW(App_Led_GetModelGpio(APP_CAN_LED));
-			GPIO_OUTPUT_LOW(App_Led_GetModelGpio(APP_GPS_LED));
-			GPIO_OUTPUT_LOW(App_Led_GetModelGpio(APP_LTE_LED));
+			ApiGpioOutputLow(App_Led_GetModelGpio(APP_CAN_LED));
+			ApiGpioOutputLow(App_Led_GetModelGpio(APP_GPS_LED));
+			ApiGpioOutputLow(App_Led_GetModelGpio(APP_LTE_LED));
 		}
 		break;
 	

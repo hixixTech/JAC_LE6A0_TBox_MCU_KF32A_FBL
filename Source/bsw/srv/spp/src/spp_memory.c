@@ -7,8 +7,8 @@
 /*                        Global variable                             */
 /**********************************************************************/
 
-UINT8 gau8SppMemMask[SPP_MEM_MAX_COUNT] = {0};
-SppMemType_t gptSppMemBuf[SPP_MEM_MAX_COUNT];
+UINT8 gaDiasSppMemMask[DIAS_SPP_MEM_MAX_COUNT] = {0};
+DIAS_SPP_MEM_TYPE gptDiasSppMemBuf[DIAS_SPP_MEM_MAX_COUNT];
 
 
 /**********************************************************************/
@@ -17,87 +17,84 @@ SppMemType_t gptSppMemBuf[SPP_MEM_MAX_COUNT];
 
 
 /******************************************************************************
-*  function name | SppMemGetUsableMask
-*  content       | ï¿½ï¿½È¡Î´Ê¹ï¿½Ãµï¿½mask
-*  parameter     | pu32MaskIndex : ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½maskÎ»ï¿½ï¿½
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemGetUsableMask
+*  content       | »ñÈ¡Î´Ê¹ÓÃµÄmask
+*  parameter     | u32MaskIndex : »ñÈ¡µ½µÄmaskÎ»ÖÃ                   
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-static SPPErrorCode_e SppMemGetUsableMask(UINT32* pu32MaskIndex)
+static DiasErrorCode_e DiasSppMemGetUsableMask(UINT32* u32MaskIndex)
 {
     UINT32 u32Index = 0;
-    for(u32Index=0; u32Index<SPP_MEM_MAX_COUNT; u32Index++)
+    for(u32Index=0; u32Index<DIAS_SPP_MEM_MAX_COUNT; u32Index++)
     {
-        if(gau8SppMemMask[u32Index] == SPP_MEM_UNUSABLE)
+        if(gaDiasSppMemMask[u32Index] == DIAS_SPP_MEM_UNUSABLE)
         {
-            *pu32MaskIndex = u32Index;
-            return SPP_SUCCESS;
+            *u32MaskIndex = u32Index;
+            return DIAS_SUCCESS;
         }
     }
-    return SPP_FAILURE;
+    return DIAS_FAILURE;
 }
 
-
 /******************************************************************************
-*  function name | SppMemSetMaskUsable
-*  content       | ï¿½ï¿½ï¿½ï¿½Î´Ê¹ï¿½Ãµï¿½mask
-*  parameter     | u32MaskIndex : Î´Ê¹ï¿½Ãµï¿½maskÎ»ï¿½ï¿½
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemSetMaskUsable
+*  content       | ÉèÖÃÎ´Ê¹ÓÃµÄmask
+*  parameter     | u32MaskIndex : Î´Ê¹ÓÃµÄmaskÎ»ÖÃ                   
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-static SPPErrorCode_e SppMemSetMaskUsable(UINT32 u32MaskIndex)
+static DiasErrorCode_e DiasSppMemSetMaskUsable(UINT32 u32MaskIndex)
 {
-    if(u32MaskIndex >= SPP_MEM_MAX_COUNT)
+    if(u32MaskIndex >= DIAS_SPP_MEM_MAX_COUNT)
     {
-        return SPP_FAILURE;
+        return DIAS_FAILURE;
     }
     else
     {
-        gau8SppMemMask[u32MaskIndex] = SPP_MEM_USABLE;
-        return SPP_SUCCESS;
+        gaDiasSppMemMask[u32MaskIndex] = DIAS_SPP_MEM_USABLE;
+        return DIAS_SUCCESS;
     }
 }
 
-
 /******************************************************************************
-*  function name | SppMemSetMaskUnusable
-*  content       | ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ãµï¿½mask
-*  parameter     | u32MaskIndex : ï¿½ï¿½Ê¹ï¿½Ãµï¿½maskÎ»ï¿½ï¿½
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemSetMaskUnusable
+*  content       | ÉèÖÃÒÑÊ¹ÓÃµÄmask
+*  parameter     | u32MaskIndex : ÒÑÊ¹ÓÃµÄmaskÎ»ÖÃ                   
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-static SPPErrorCode_e SppMemSetMaskUnusable(UINT32 u32MaskIndex)
+static DiasErrorCode_e DiasSppMemSetMaskUnusable(UINT32 u32MaskIndex)
 {
-    if(u32MaskIndex >= SPP_MEM_MAX_COUNT)
+    if(u32MaskIndex >= DIAS_SPP_MEM_MAX_COUNT)
     {
-        return SPP_FAILURE;
+        return DIAS_FAILURE;
     }
     else
     {
-        gau8SppMemMask[u32MaskIndex] = SPP_MEM_UNUSABLE;
-        return SPP_SUCCESS;
+        gaDiasSppMemMask[u32MaskIndex] = DIAS_SPP_MEM_UNUSABLE;
+        return DIAS_SUCCESS;
     }
 }
 
-
 /******************************************************************************
-*  function name | SppMemDoMalloc
-*  content       | ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½
-*  parameter     | u32Size : ï¿½Õ¼ï¿½ï¿½Ð¡
-*  return        | void* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*  function name | DiasSppMemDoMalloc
+*  content       | ÉêÇë¿Õ¼ä
+*  parameter     | u32Size : ¿Õ¼ä´óÐ¡                   
+*  return        | void* ÉêÇë½á¹û
 *  notice        | 
 ******************************************************************************/
-static void* SppMemDoMalloc(UINT32 u32Size)
+static void* DiasSppMemDoMalloc(UINT32 u32Size)
 {
-	SPPErrorCode_e eRet = SPP_FAILURE;
+	DiasErrorCode_e eRet = DIAS_FAILURE;
     UINT32 u32MaskIndex = 0;
   
-    eRet = SppMemGetUsableMask(&u32MaskIndex);
-    if(SPP_SUCCESS == eRet)
+    eRet = DiasSppMemGetUsableMask(&u32MaskIndex);
+    if(DIAS_SUCCESS == eRet)
     {
-        SppMemSetMaskUsable(u32MaskIndex);
-        memset(gptSppMemBuf + u32MaskIndex,0,sizeof(SppMemType_t));
-        return (gptSppMemBuf + u32MaskIndex);
+        DiasSppMemSetMaskUsable(u32MaskIndex);
+        memset(gptDiasSppMemBuf + u32MaskIndex,0,sizeof(DIAS_SPP_MEM_TYPE));
+        return (gptDiasSppMemBuf + u32MaskIndex);
     }
     else
     {      
@@ -106,149 +103,176 @@ static void* SppMemDoMalloc(UINT32 u32Size)
     }
 }
 
-
 /******************************************************************************
-*  function name | SppMemDoFree
-*  content       | ï¿½Í·Å¿Õ¼ï¿½
-*  parameter     | pcBuf : ï¿½Õ¼ï¿½ï¿½Ö·
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemDoFree
+*  content       | ÊÍ·Å¿Õ¼ä
+*  parameter     | pcBuf : ¿Õ¼äµØÖ·                   
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-static SPPErrorCode_e SppMemDoFree(CHAR* pcBuf)
+static DiasErrorCode_e DiasSppMemDoFree(CHAR* pcBuf)
 {
-    CHAR* pcBegin = (CHAR*)gptSppMemBuf;
+    CHAR* pcBegin = (CHAR*)gptDiasSppMemBuf;
     UINT32 u32MaskIndex = 0;
     UINT32 u32len = pcBuf - pcBegin;
-    if((u32len % SPP_MEM_UINT_SIZE) != 0)
+    if((u32len % DIAS_SPP_MEM_UINT_SIZE) != 0)
     {
-        return SPP_FAILURE;
+		DiasDcpdLog(LOG_ERR,"DiasSppMemFree para wrong");		
+        return DIAS_FAILURE;
     }
-    u32MaskIndex = u32len / SPP_MEM_UINT_SIZE;
-    SppMemSetMaskUnusable(u32MaskIndex);    
-    return SPP_SUCCESS;
+    u32MaskIndex = u32len / DIAS_SPP_MEM_UINT_SIZE;
+    DiasSppMemSetMaskUnusable(u32MaskIndex);    
+    return DIAS_SUCCESS;
 }
 
 /******************************************************************************
-*  function name | SppMemMalloc
-*  content       | ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½
-*  parameter     | u32Size : ï¿½Õ¼ï¿½ï¿½Ð¡
-*  return        | void* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*  function name | DiasSppMemMalloc
+*  content       | ÉêÇë¿Õ¼ä
+*  parameter     | u32Size : ¿Õ¼ä´óÐ¡                   
+*  return        | void* ÉêÇë½á¹û
 *  notice        | 
 ******************************************************************************/
-static void* SppMemMalloc(UINT32 u32Size)
+static void* DiasSppMemMalloc(UINT32 u32Size)
 {
-    if(NULL == gptSppMemBuf)
+    if(NULL == gptDiasSppMemBuf)
     {
         return malloc(u32Size);
     }
     else
     {
-        return SppMemDoMalloc(u32Size);
+        return DiasSppMemDoMalloc(u32Size);
     }
 }
 
 /******************************************************************************
-*  function name | SppMemFree
-*  content       | ï¿½Í·Å¿Õ¼ï¿½
-*  parameter     | pcBuf : ï¿½Õ¼ï¿½ï¿½Ö·
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemFree
+*  content       | ÊÍ·Å¿Õ¼ä
+*  parameter     | pcBuf : ¿Õ¼äµØÖ·                   
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-static SPPErrorCode_e SppMemFree(void* pcBuf)
+static DiasErrorCode_e DiasSppMemFree(void* pcBuf)
 {
     CHAR* pcTmp = (CHAR*)pcBuf;
-    CHAR* pcBegin = (CHAR*)gptSppMemBuf;
-    CHAR* pcEnd = (CHAR*)(gptSppMemBuf+SPP_MEM_MAX_COUNT);
+    CHAR* pcBegin = (CHAR*)gptDiasSppMemBuf;
+    CHAR* pcEnd = (CHAR*)(gptDiasSppMemBuf+DIAS_SPP_MEM_MAX_COUNT);
     if(NULL == pcTmp)
     {
-        return SPP_FAILURE;
+        return DIAS_FAILURE;
     }
     else if(pcTmp < pcBegin || pcTmp >= pcEnd)
     {
         free(pcTmp);
         pcTmp = NULL;
-        return SPP_SUCCESS;
+        return DIAS_SUCCESS;
     }
     else
     {
-        return SppMemDoFree(pcTmp);
+        return DiasSppMemDoFree(pcTmp);
     }
 }
 
 /******************************************************************************
-*  function name | SppMemInit
-*  content       | sppï¿½æ´¢ï¿½ï¿½Ê¼ï¿½ï¿½
+*  function name | DiasSppMemInit
+*  content       | spp´æ´¢³õÊ¼»¯
 *  parameter     |                   
-*  return        | SPPErrorCode_e
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-SPPErrorCode_e SppMemInit(void)
+DiasErrorCode_e DiasSppMemInit(void)
 { 
-    memset(gau8SppMemMask, 0, sizeof(gau8SppMemMask));
-    memset(&gptSppMemBuf, 0, sizeof(gptSppMemBuf));
-    return SPP_SUCCESS;
-}
-
-/******************************************************************************
-*  function name | SppMemUninit
-*  content       | sppï¿½æ´¢ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
-*  parameter     |                   
-*  return        | SPPErrorCode_e
-*  notice        | 
-******************************************************************************/
-SPPErrorCode_e SppMemUninit(void)
-{
-    memset(gptSppMemBuf, 0, sizeof(gptSppMemBuf));
-    memset(gau8SppMemMask, 0, sizeof(gau8SppMemMask));
-    return SPP_SUCCESS;
-}
-
-
-SppMemType_t* SppMemFindLastNode(SppMemType_t* ptMemList)
-{
-    SppMemType_t* ptList = NULL;
-    SppMemType_t*  ptNode = NULL;
-    if (ptMemList == NULL)
+    //modify
+    /*
+    gptDiasSppMemBuf = (DIAS_SPP_MEM_TYPE*)malloc(DIAS_SPP_MEM_BUF_SIZE); 
+    if(gptDiasSppMemBuf)
     {
-        return NULL;
+        return DIAS_SUCCESS;
     }
     else
     {
-        ptList = ptMemList;
-        while((ptList->next) != NULL)
-        {
-            ptList = ptList->next;
-        }//find last one  
-        return ptList;
+        return DIAS_FAILURE;
     }
+    */
+    //to
+
+    UINT32 u32Index = 0;
+    for(u32Index=0; u32Index<DIAS_SPP_MEM_MAX_COUNT; u32Index++)
+    {
+        //memset(gptDiasSppMemBuf[u32Index].pDcpdData,0,sizeof(gptDiasSppMemBuf[u32Index].pDcpdData));
+//        if(gptDiasSppMemBuf[u32Index].pDcpdData != NULL)
+//        {
+//            free(gptDiasSppMemBuf[u32Index].pDcpdData);
+//            gptDiasSppMemBuf[u32Index].pDcpdData=NULL;
+//        }
+    }   
+    memset(gaDiasSppMemMask, 0, sizeof(gaDiasSppMemMask));
+    memset(&gptDiasSppMemBuf, 0, sizeof(gptDiasSppMemBuf));
+    return DIAS_SUCCESS;
 }
 
 /******************************************************************************
-*  function name | SppMemAddNode
-*  content       | ï¿½ï¿½Ó½Úµï¿½
-*  parameter     | ptMemList listÖ¸ï¿½ï¿½ ptNodeToAdd ï¿½Úµï¿½Ö¸ï¿½ï¿½
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemUninit
+*  content       | spp´æ´¢·´³õÊ¼»¯
+*  parameter     |                   
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-SppMemType_t* SppMemAddNode(SppMemType_t* ptMemList, SppMemType_t* ptNodeToAdd)
+DiasErrorCode_e DiasSppMemUninit(void)
 {
-    SppMemType_t* ptList = NULL;
-    SppMemType_t*  ptNode = NULL;
+    //modify
+    /*
+    if(gptDiasSppMemBuf)
+    {
+        free(gptDiasSppMemBuf);
+        gptDiasSppMemBuf = NULL;
+        memset(gaDiasSppMemMask, 0, sizeof(gaDiasSppMemMask));
+    }
+    */
+    //to
+
+    UINT32 u32Index = 0;
+    for(u32Index=0; u32Index<DIAS_SPP_MEM_MAX_COUNT; u32Index++)
+    {
+//        if(gptDiasSppMemBuf[u32Index].pDcpdData != NULL)
+//        {
+//            free(gptDiasSppMemBuf[u32Index].pDcpdData);
+//            gptDiasSppMemBuf[u32Index].pDcpdData=NULL;
+//        }
+    }   
+
+    memset(gptDiasSppMemBuf, 0, sizeof(gptDiasSppMemBuf));
+    memset(gaDiasSppMemMask, 0, sizeof(gaDiasSppMemMask));
+    return DIAS_SUCCESS;
+}
+
+/******************************************************************************
+*  function name | DiasSppMemAddNode
+*  content       | Ìí¼Ó½Úµã 
+*  parameter     | ptMemList listÖ¸Õë ptNodeToAdd ½ÚµãÖ¸Õë           
+*  return        | DiasErrorCode_e
+*  notice        | 
+******************************************************************************/
+DIAS_SPP_MEM_TYPE* DiasSppMemAddNode(DIAS_SPP_MEM_TYPE* ptMemList, DIAS_SPP_MEM_TYPE* ptNodeToAdd)
+{
+    DIAS_SPP_MEM_TYPE* ptList = NULL;
+    DIAS_SPP_MEM_TYPE*  ptNode = NULL;
 
     if(ptMemList == NULL)
 	{
-        ptNode = (SppMemType_t*)SppMemMalloc(SPP_MEM_UINT_SIZE);
+        ptNode = (DIAS_SPP_MEM_TYPE*)DiasSppMemMalloc(DIAS_SPP_MEM_UINT_SIZE);
         if(ptNode == NULL)
 		{
+            DiasDcpdLog(LOG_ERR,"DiasSppMemAddNode DiasSppMemMalloc failed");
             return NULL;
         }
 		
-        memset(ptNode, 0,sizeof(SppMemType_t));		
+        memset(ptNode, 0,sizeof(DIAS_SPP_MEM_TYPE));		
         ptMemList = ptNode;	
 		
-		memcpy(ptMemList, ptNodeToAdd, sizeof(SppMemType_t));	       
+		memcpy(ptMemList, ptNodeToAdd, sizeof(DIAS_SPP_MEM_TYPE));	       
         (ptMemList)->next = NULL;
         (ptMemList)->prev = NULL;
+        DiasSppGetAbsTime(&((ptMemList)->currentTime));  	
         ptMemList->u32TimeCout = 0;
     }
 	else
@@ -258,15 +282,17 @@ SppMemType_t* SppMemAddNode(SppMemType_t* ptMemList, SppMemType_t* ptNodeToAdd)
 		{
             ptList = ptList->next;
         }//find last one		
-        ptNode = (SppMemType_t*)SppMemMalloc(SPP_MEM_UINT_SIZE);
+        ptNode = (DIAS_SPP_MEM_TYPE*)DiasSppMemMalloc(DIAS_SPP_MEM_UINT_SIZE);
         if(ptNode == NULL)
 		{
+            //DiasDcpdLog(LOG_ERR,"malloc  node failed  cmdID = %d,",cmdid);            
             return NULL;
         }
-        memset(ptNode, 0, sizeof(SppMemType_t));
-		memcpy(ptNode, ptNodeToAdd, sizeof(SppMemType_t));
+        memset(ptNode, 0, sizeof(DIAS_SPP_MEM_TYPE));
+		memcpy(ptNode, ptNodeToAdd, sizeof(DIAS_SPP_MEM_TYPE));
 		
         ptNode->next = NULL;
+        DiasSppGetAbsTime(&(ptNode->currentTime));  
         ptNode->u32TimeCout = 0;
         ptNode->prev = ptList;
         ptList->next = ptNode;
@@ -275,29 +301,84 @@ SppMemType_t* SppMemAddNode(SppMemType_t* ptMemList, SppMemType_t* ptNodeToAdd)
 	return ptMemList;    
 }
 
+/******************************************************************************
+*  function name | DiasSppMemFindNode
+*  content       | ²éÕÒ½Úµã 
+*  parameter     | ptMemList listÖ¸Õë u16Cmdid ÃüÁîid      u8CmdSplitedNumCur rollÖµ         
+*  return        | DIAS_SPP_MEM_TYPE* ½ÚµãÖ¸Õë
+*  notice        | 
+******************************************************************************/
+DIAS_SPP_MEM_TYPE* DiasSppMemRemoveNotHighNode(DIAS_SPP_MEM_TYPE* ptMemList)
+{  
+    DiasSppListNode_t* ptNode = ptMemList;
+    while((ptNode) != NULL)
+	{
+        if(ptNode->u8Priority==DIAS_SPP_PRI_NORMAL)
+		{            
+            DiasDcpdLog(LOG_INFO,"DiasSppMemRemoveNotHighNode find normal node cmdid=%d ",ptNode->u16EventId);          
+			return DiasSppMemDeleteNodebyCmdid(ptMemList, ptNode->u16EventId);
+        }
+        ptNode = ptNode->next;
+    }
+
+	ptNode = ptMemList;
+	while((ptNode) != NULL)
+	{
+        if(ptNode->u8Priority==DIAS_SPP_PRI_MEDIUM)
+		{            
+            DiasDcpdLog(LOG_INFO,"DiasSppMemRemoveNotHighNode find medium node cmdid=%d ",ptNode->u16EventId);          
+            return DiasSppMemDeleteNodebyCmdid(ptMemList, ptNode->u16EventId);
+        }
+        ptNode = ptNode->next;
+    }
+	
+    DiasDcpdLog(LOG_INFO,"can not find normal medium node");  	
+    return ptMemList;
+}
 
 /******************************************************************************
-*  function name | SppMemDeleteNodebySN
-*  content       | ï¿½ï¿½ï¿½SNï¿½ï¿½É¾ï¿½ï¿½Úµï¿½
-*  parameter[1]  | ptMemList :ï¿½ï¿½ï¿½ï¿½
-*  parameter[2]  | u8Sn :sn
+*  function name | DiasSppMemFindNode
+*  content       | ²éÕÒ½Úµã 
+*  parameter     | ptMemList listÖ¸Õë u16Cmdid ÃüÁîid      u8CmdSplitedNumCur rollÖµ         
+*  return        | DIAS_SPP_MEM_TYPE* ½ÚµãÖ¸Õë
 *  notice        | 
-*  return        | 
 ******************************************************************************/
-SppMemType_t* SppMemDeleteNodebySN(SppMemType_t* ptMemList, UINT8 u8Sn)
+DIAS_SPP_MEM_TYPE * DiasSppMemFindNode(DIAS_SPP_MEM_TYPE* ptMemList, UINT16 u16Cmdid, UINT8 u8CmdSplitedNumCur)
+{  
+    DiasSppListNode_t* ptNode = ptMemList;
+    while((ptNode) != NULL)
+	{
+        if((u16Cmdid == ptNode->u16EventId ) && (u8CmdSplitedNumCur == ptNode->u8SplitedNumCur))
+		{            
+            DiasDcpdLog(LOG_INFO,"findCMD node cmdid=%d ",u16Cmdid);           
+            return ptNode;
+        }
+        ptNode = ptNode->next;
+    }//find last one
+    DiasDcpdLog(LOG_INFO,"can not find cmdID = %d,",u16Cmdid);    
+    return NULL;   
+}
+
+/******************************************************************************
+*  function name | DiasSppMemDeleteNodebyCmdid
+*  content       | É¾³ý½Úµã 
+*  parameter     | ptMemList listÖ¸Õë u16Cmdid ÃüÁîid      
+*  return        | DIAS_SPP_MEM_TYPE* list Ö¸Õë
+*  notice        | 
+******************************************************************************/
+DIAS_SPP_MEM_TYPE* DiasSppMemDeleteNodebyCmdid(DIAS_SPP_MEM_TYPE* ptMemList, UINT16 u16Cmdid)
 {   
-	SppMemType_t* ptListCur=NULL;		
-	SppMemType_t* ptTmp=NULL; 
-	SppMemType_t* ptPrev = NULL;
-	SppMemType_t* ptNext = NULL;
-	SppMemType_t* ptFree = NULL;
+	DIAS_SPP_MEM_TYPE* ptListCur=NULL;		
+	DIAS_SPP_MEM_TYPE* ptTmp=NULL; 
+	DIAS_SPP_MEM_TYPE* ptPrev = NULL;
+	DIAS_SPP_MEM_TYPE* ptNext = NULL;
+	DIAS_SPP_MEM_TYPE* ptFree = NULL;
 
 	ptTmp = ptMemList;
-    ptListCur = ptMemList;
 
 	while((ptTmp) != NULL)
 	{ 
-		if(u8Sn == ptTmp->u8Sn)
+		if(u16Cmdid == ptTmp->u16EventId)
 		{	
 			ptPrev = ptTmp->prev;
 			ptNext = ptTmp->next;				 
@@ -320,8 +401,7 @@ SppMemType_t* SppMemDeleteNodebySN(SppMemType_t* ptMemList, UINT8 u8Sn)
 			}						 
 			ptFree = ptTmp;
 			ptTmp = ptNext; 
-			SppMemFree(ptFree);   
-            break;
+			DiasSppMemFree(ptFree);   
 		}
 		else
 		{			
@@ -332,27 +412,26 @@ SppMemType_t* SppMemDeleteNodebySN(SppMemType_t* ptMemList, UINT8 u8Sn)
 	return ptListCur;    
 }
 
-
 /******************************************************************************
-*  function name | SppMemRemoveOneNode
-*  content       | É¾ï¿½ï¿½Úµï¿½
-*  parameter     | ptMemList listÖ¸ï¿½ï¿½ ptNodetoRemove ï¿½ï¿½É¾ï¿½ï¿½Úµï¿½Ö¸ï¿½ï¿½
-*  return        | SppMemType_t* list Ö¸ï¿½ï¿½
+*  function name | DiasSppMemRemoveOneNode
+*  content       | É¾³ý½Úµã 
+*  parameter     | ptMemList listÖ¸Õë ptNodetoRemove ´ýÉ¾³ý½ÚµãÖ¸Õë      
+*  return        | DIAS_SPP_MEM_TYPE* list Ö¸Õë
 *  notice        | 
 ******************************************************************************/
-SppMemType_t* SppMemRemoveOneNode(SppMemType_t* ptMemList, SppMemType_t* ptNodetoRemove)
+DIAS_SPP_MEM_TYPE* DiasSppMemRemoveOneNode(DIAS_SPP_MEM_TYPE* ptMemList, DIAS_SPP_MEM_TYPE* ptNodetoRemove)
 {
-	SppMemType_t* ptListCur=NULL;		
-	SppMemType_t* ptTmp=NULL; 
-	SppMemType_t* ptPrev = NULL;
-	SppMemType_t* ptNext = NULL;
-	SppMemType_t* ptFree = NULL;
+	DIAS_SPP_MEM_TYPE* ptListCur=NULL;		
+	DIAS_SPP_MEM_TYPE* ptTmp=NULL; 
+	DIAS_SPP_MEM_TYPE* ptPrev = NULL;
+	DIAS_SPP_MEM_TYPE* ptNext = NULL;
+	DIAS_SPP_MEM_TYPE* ptFree = NULL;
 
 	ptTmp = ptMemList;
 
 	while((ptTmp) != NULL)
 	{ 
-		if(ptTmp==ptNodetoRemove)
+		if(ptTmp=ptNodetoRemove)
 		{ 	
 			ptPrev = ptTmp->prev;
 			ptNext = ptTmp->next;				 
@@ -375,7 +454,7 @@ SppMemType_t* SppMemRemoveOneNode(SppMemType_t* ptMemList, SppMemType_t* ptNodet
 			}						 
 			ptFree = ptTmp;
 			ptTmp = ptNext; 
-			SppMemFree(ptFree);   
+			DiasSppMemFree(ptFree);   
 		}
 		else
 		{			
@@ -386,18 +465,17 @@ SppMemType_t* SppMemRemoveOneNode(SppMemType_t* ptMemList, SppMemType_t* ptNodet
 	return ptListCur;
 }
 
-
 /******************************************************************************
-*  function name | SppMemGetFirstNode
-*  content       | ï¿½ï¿½È¡ï¿½×¸ï¿½ï¿½Úµï¿½
-*  parameter     | ptMemList listÖ¸ï¿½ï¿½
-*  return        | SppMemType_t * ï¿½Úµï¿½Ö¸ï¿½ï¿½
+*  function name | DiasSppMemGetFirstNode
+*  content       | »ñÈ¡Ê×¸ö½Úµã 
+*  parameter     | ptMemList listÖ¸Õë        
+*  return        | DIAS_SPP_MEM_TYPE * ½ÚµãÖ¸Õë
 *  notice        | 
 ******************************************************************************/
-SppMemType_t * SppMemGetFirstNode(SppMemType_t* ptMemList)
+DIAS_SPP_MEM_TYPE * DiasSppMemGetFirstNode(DIAS_SPP_MEM_TYPE* ptMemList)
 { 	
-	SppMemType_t* ptNode = ptMemList;
-	SppMemType_t* ptNodeNext =NULL;
+	DIAS_SPP_MEM_TYPE* ptNode = ptMemList;
+	DIAS_SPP_MEM_TYPE* ptNodeNext =NULL;
 		
 	if(ptNode != NULL)
 	{	  
@@ -414,44 +492,47 @@ SppMemType_t * SppMemGetFirstNode(SppMemType_t* ptMemList)
 		return NULL;
 	}	
 }
-
-
 /******************************************************************************
-*  function name | SppMemFreeOneNode
-*  content       | ï¿½Í·Å½Úµï¿½
-*  parameter     | ptNode ï¿½Úµï¿½Ö¸ï¿½ï¿½
-*  return        | SPPErrorCode_e
+*  function name | DiasSppMemFreeOneNode
+*  content       | ÊÍ·Å½Úµã 
+*  parameter     | ptNode ½ÚµãÖ¸Õë        
+*  return        | DiasErrorCode_e
 *  notice        | 
 ******************************************************************************/
-SPPErrorCode_e SppMemFreeOneNode(SppMemType_t* ptNode)
+DiasErrorCode_e DiasSppMemFreeOneNode(DIAS_SPP_MEM_TYPE* ptNode)
 {
-	SPPErrorCode_e eRet=SPP_FAILURE;
+	DiasErrorCode_e eRet=DIAS_FAILURE;
 	if(ptNode != NULL)
 	{
 	    memset(ptNode->pDcpdData,0,sizeof(ptNode->pDcpdData));
-		eRet=SppMemFree(ptNode);
-		if(SPP_FAILURE==eRet)
+//		if(ptNode->pDcpdData != NULL)
+//		{
+//			free(ptNode->pDcpdData);
+//			ptNode->pDcpdData=NULL;			
+//		}
+		eRet=DiasSppMemFree(ptNode);
+		if(DIAS_FAILURE==eRet)
 		{
+			DiasDcpdLog(LOG_ERR,"DiasSppMemFreeOneNode return fail");
 		}
 		return eRet;
 	}
 	else
 	{
-		return SPP_FAILURE;
+		DiasDcpdLog(LOG_ERR,"DiasSppMemFreeOneNode ptNode is NULL");
+		return DIAS_FAILURE;
 	}	
 }
-
-
 /******************************************************************************
-*  function name | SppMemGetListNum
-*  content       | ï¿½ï¿½È¡listï¿½Ð½Úµï¿½ï¿½ï¿½ï¿½
-*  parameter     | ptMemList listÖ¸ï¿½ï¿½
-*  return        | UINT32 ï¿½ï¿½ï¿½ï¿½
+*  function name | DiasSppMemGetListNum
+*  content       | »ñÈ¡listÖÐ½Úµã¸öÊý
+*  parameter     | ptMemList listÖ¸Õë         
+*  return        | UINT32 ¸öÊý
 *  notice        | 
 ******************************************************************************/
-UINT32 SppMemGetListNum(SppMemType_t* ptMemList)
+UINT32 DiasSppMemGetListNum(DIAS_SPP_MEM_TYPE* ptMemList)
 {
-	SppMemType_t* ptNode = ptMemList;
+	DIAS_SPP_MEM_TYPE* ptNode = ptMemList;
 	UINT32 u32Num=0;
 		
 	if(NULL==ptNode)
@@ -467,26 +548,6 @@ UINT32 SppMemGetListNum(SppMemType_t* ptMemList)
 	return u32Num;	
 }
 
-
-/******************************************************************************
-*  function name | SppMemGetFreeSpace
-*  content       | ï¿½ï¿½È¡ï¿½Ú´ï¿½Ê£ï¿½ï¿½Õ¼ï¿½
-*  return        | 
-******************************************************************************/
-UINT32 SppMemGetFreeSpace(void)
-{
-    UINT32 u32Index = 0;
-    UINT32 u32Ret = 0;
-    
-    for(u32Index=0; u32Index<SPP_MEM_MAX_COUNT; u32Index++)
-    {
-        if(gau8SppMemMask[u32Index] == SPP_MEM_UNUSABLE)
-        {
-            u32Ret++;
-        }
-    }
-    return u32Ret;
-}
 
 
 

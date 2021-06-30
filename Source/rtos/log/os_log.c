@@ -23,8 +23,8 @@
 #include "ecu_usart.h"
 #include "os_log.h"
 
-//#include "spp_generated.h"
-//#include "srv_ossys_dcpdtask.h"
+#include "spp_generated.h"
+//#include "rtos_dcpdtask.h"
 
 #ifdef PRQA_TEST
     #pragma PRQA_MESSAGES_OFF 5124
@@ -337,8 +337,8 @@ void ApiLogProcess(void)
 *  return        | 
 *  notice        | 
 ******************************************************************************/
-//static void LOG_MPULOG_Process(void)
-//{
+// static void LOG_MPULOG_Process(void)
+// {
 //    UINT16 u16PrintCnt = 0;
 //    DcpdPackageToMpuMcuLog_t tDcpdMcuLog;
 //    UINT16 u16CurLen = 0;
@@ -378,9 +378,9 @@ void ApiLogProcess(void)
 //            {
 //                return;
 //            }
-//            
+           
 //        }
-//        
+       
 //    }
 
 //    tDcpdMcuLog.tHeader.u8SrcSrvId = 0x00;
@@ -391,7 +391,7 @@ void ApiLogProcess(void)
 //    u16MpuLogLen = 0;
 //    memset(au8MpuLogBuff , 0 , LOG_MPU_MAX_LEN);
 
-//}
+// }
 
 
 /******************************************************************************

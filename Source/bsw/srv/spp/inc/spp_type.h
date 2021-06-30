@@ -1,14 +1,28 @@
-#ifndef _SPP_TYPE_H_
-#define _SPP_TYPE_H_
+#ifndef _DIAS_SPP_TYPE_H_
+#define _DIAS_SPP_TYPE_H_
 
 
-/*#include "types.h"*//*by S811*/
+#include "type.h"
 #include "os_log.h"
 
+typedef signed char              INT8;
+typedef unsigned char             UINT8;
+typedef unsigned char             UCHAR;
+typedef unsigned char             BYTE;
+typedef unsigned char             BOOL;
+typedef signed short             INT16;
+typedef unsigned short            UINT16;
+typedef signed long             INT32;
+typedef unsigned long            UINT32;
+typedef unsigned long            DWORD;
+typedef signed long long             INT64;
+typedef unsigned long long            UINT64;
+typedef void                VOID;
+typedef float               FLOAT;
+typedef double              DOUBLE;
 
-
-//#define SPP_TYPE_MPU
-#define SPP_HEART_ADD
+//#define DIAS_SPP_TYPE_MPU
+#define DIAS_SPP_HEART_ADD
 
 #define	LOG_EMERG          0 /* system is unusable               */
 #define	LOG_ALERT          1 /* action must be taken immediately */
@@ -20,31 +34,31 @@
 #define	LOG_DEBUG          7 /* debug-level messages             */
 
 
-#ifdef	SPP_TYPE_MPU
-    #define DiasDcpdLog(priority,...) DiasLog(priority, DCPD_APP_NAME,__VA_ARGS__)
+#ifdef	DIAS_SPP_TYPE_MPU
+    #define DiasDcpdLog(priority,...) DiasLog(priority, DIAS_DCPD_APP_NAME,__VA_ARGS__)
 #else
     
-    #define DiasDcpdLog(priority,...) //yynt(_LOG_ENTRY,##__VA_ARGS__);
+    #define DiasDcpdLog(priority,...) 
 #endif
 
 typedef enum
 {
-    SPP_FAILURE                 = -1,
-    SPP_SUCCESS                 = 0,
+    DIAS_FAILURE                     = -1,
+    DIAS_SUCCESS                     = 0,
 
-    COMMON_ERROR_CODE_MIN       = 0x00000001,
-    COMMON_ERROR_CODE_MAX       = 0x00001000,
+    DIAS_COMMON_ERROR_CODE_MIN       = 0x00000001,
+    DIAS_COMMON_ERROR_CODE_MAX       = 0x00001000,
     
-    DAEMON_ERROR_CODE_MIN       = 0x00001000,
-    DAEMON_ERROR_CODE_MAX       = 0x00002000,
+    DIAS_DAEMON_ERROR_CODE_MIN       = 0x00001000,
+    DIAS_DAEMON_ERROR_CODE_MAX       = 0x00002000,
 
-    LOG_ERROR_CODE_MIN          = 0x00002000,
-    LOG_ERROR_CODE_MAX          = 0x00003000,
+    DIAS_LOG_ERROR_CODE_MIN          = 0x00002000,
+    DIAS_LOG_ERROR_CODE_MAX          = 0x00003000,
 
-    NV_ERROR_CODE_MIN           = 0x00003001,
-    NV_ERROR_CODE_BAD_LENGTH    = 0x00003002,
-    NV_ERROR_CODE_MAX           = 0x00004000,
-}SPPErrorCode_e;
+    DIAS_NV_ERROR_CODE_MIN           = 0x00003001,
+    DIAS_NV_ERROR_CODE_BAD_LENGTH    = 0x00003002,
+    DIAS_NV_ERROR_CODE_MAX           = 0x00004000,
+}DiasErrorCode_e;
 
 
 #endif

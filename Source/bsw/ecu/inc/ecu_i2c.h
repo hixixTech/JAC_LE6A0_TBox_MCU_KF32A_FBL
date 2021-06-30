@@ -63,7 +63,11 @@
 /*****************************************************************************
 ** Function prototypeseb
 *****************************************************************************/
-
+void ApiI2cInit(void);
+void ApiI2cWriteByte(UINT8 u8_salve_addr,UINT8 u8_reg_addr,UINT8 u8_data);
+void ApiI2cWriteNumByte(UINT8 u8_salve_addr,UINT8 u8_reg_addr,UINT8* u8_data,UINT16 u16_len);
+void ApiI2cReadByte(UINT8 u8_salve_addr,UINT8 u8_reg_addr,UINT8* u8_data);
+void ApiI2cReadNumByte(UINT8 u8_salve_addr,UINT8 u8_reg_addr,UINT8* u8_data,UINT16 u16_len);
 /*****************************************************************************
 ** other
 *****************************************************************************/

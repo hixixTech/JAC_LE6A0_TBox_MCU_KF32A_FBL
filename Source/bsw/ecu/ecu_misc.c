@@ -58,8 +58,22 @@ BOOL Ecu_Misc_CompareByte(const UINT8* u8_src,const UINT8 u8_data,UINT16 u16_len
 			return FALSE;
 		}
 	}
-
 	return TRUE;
+}
+
+void delayus(UINT32 u32_us)
+{
+	UINT32 u32_i = 0;
+	UINT32 u32_j = 0;
+
+	for (u32_i = 0; u32_i < u32_us; u32_i++)
+	{
+		for(u32_j = 0; u32_j < 10; u32_j++)
+		{
+			;
+		}
+	}
+
 }
 /****************************************************************************/
 

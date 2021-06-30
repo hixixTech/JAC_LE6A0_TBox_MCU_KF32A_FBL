@@ -15,7 +15,6 @@
 /*****************************************************************************
 ** #include 
 *****************************************************************************/
-
 #include "bsw_init.h"
 
 /*****************************************************************************
@@ -70,12 +69,14 @@ void bsw_init(void)
 	ApiUsartBleInit();
 	ApiUsartMpuInit();
 	
-	// Ecu_Dma_Init();
-	Ecu_Spi_Init();
+	ApiI2cInit();
+	ApiAdc0Init();
 
 	ApiCan0Init();
 	ApiCan1Init();
 	ApiCan2Init();
+
+	ApiDmaMpuRxInit(ApiGetRegAddrFormMpuRx(),SppGetMpuBuffAddr());
 	
     //srv part
 	Mem_EE_Init();
@@ -88,12 +89,14 @@ void bsw_init(void)
     ApiGpioOutputHigh(GPIO_BAT_DET_CTL);
     ApiGpioOutputHigh(GPIO_AUX_BOX_MUTE);
     ApiGpioOutputHigh(GPIO_SPK_BOX_MUTE);
-    ApiGpioOutputHigh(GPIO_SOSLED_CTL);
+    // ApiGpioOutputHigh(GPIO_SOSLED_CTL);
     ApiGpioOutputHigh(GPIO_CODEC_EN);
     ApiGpioOutputHigh(GPIO_4G_VBUS_CNTL);
     ApiGpioOutputHigh(GPIO_GSENSOR_EN);
     ApiGpioOutputHigh(GPIO_DIV8_EN);
     ApiGpioOutputHigh(GPIO_MIC_EN);
+	ApiGpioOutputHigh(GPIO_PWR_CTL_4G);
+	
 
 }
 /*****************************************************************************

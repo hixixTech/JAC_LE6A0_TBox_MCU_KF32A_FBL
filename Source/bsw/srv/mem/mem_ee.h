@@ -24,21 +24,7 @@
 /*****************************************************************************
 **  typedef
 *****************************************************************************/
-typedef enum
-{
-    EE_IDLE = 0,    //空闲状态
-    EE_RUNNING      //运行状态
-}MemEeprom_State;
 
-typedef enum
-{
-    EE_DATA_INIT = 0,
-    EE_DATA_SEARCH,
-    EE_DATA_SEARCH_NEXT,
-    EE_DATA_READ,
-    EE_DATA_READ_WAIT,
-    EE_DATA_FINISH
-}EE_DataInitCmd_S;
 /*****************************************************************************
 ** Constant Macro Definition
 *****************************************************************************/
@@ -77,10 +63,12 @@ typedef enum
 /*****************************************************************************
 ** Function prototypeseb
 *****************************************************************************/
-void Mem_EE_Init(void);
-void Mem_EE_Handler10ms(void);
-BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data);
-BOOL Mem_EE_write(UINT32 u32_id,UINT8* u8_data);
+extern void Mem_EE_Init(void);
+extern void Mem_EE_Handler10ms(void);
+extern BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_Offset,INT16 u16_len);
+extern BOOL Mem_EE_write(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len);
+extern BOOL ApiNvramReadSyncInd(UINT32 u32_id, UINT16 u16_len,UINT16 u16_Offset,UINT8* p_u8_buff) ;
+extern BOOL ApiNvramWritAsyncInd(UINT32 u32_id, UINT16 u16_len,UINT8* p_u8_buff);
 /*****************************************************************************
 ** other
 *****************************************************************************/

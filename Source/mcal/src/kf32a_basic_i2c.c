@@ -1,13 +1,13 @@
 /**
   ******************************************************************************
-  * �ļ���  kf32a_basic_i2c.c
-  * ��  ��  ChipON_AE/FAE_Group
-  * ��  ��  V2.61
-  * ��  ��  2019-11-16
-  * ��  ��  ���ļ��ṩ���ڲ����ɵ�·�ӿ�(I2C)���蹦�ܺ�����������
-  *          + �ڲ����ɵ�·�ӿ�(I2C)��ʼ������
-  *          + �ڲ����ɵ�·�ӿ�(I2C)�������ú���
-  *          + �ڲ����ɵ�·�ӿ�(I2C)�жϹ�������
+  * 文件名  kf32a_basic_i2c.c
+  * 作  者  ChipON_AE/FAE_Group
+  * 版  本  V2.61
+  * 日  期  2019-11-16
+  * 描  述  该文件提供了内部集成电路接口(I2C)外设功能函数，包含：
+  *          + 内部集成电路接口(I2C)初始化函数
+  *          + 内部集成电路接口(I2C)功能配置函数
+  *          + 内部集成电路接口(I2C)中断管理函数
   *
   *********************************************************************
   */
@@ -17,8 +17,8 @@
 #include "kf32a_basic_pclk.h"
 
 
-/* I2C˽�ж��� ----------------------------------------------------*/
-/* I2C_CTLR�Ĵ��������������� */
+/* I2C私有定义 ----------------------------------------------------*/
+/* I2C_CTLR寄存器主机配置掩码 */
 #define I2C_CTLR_INIT_MASK              (I2C_CTLR_SMBUS \
                                        | I2C_CTLR_I2CCKS \
                                        | I2C_CTLR_BADR10 \
@@ -28,17 +28,17 @@
 
 
 /**
-  *   ##### �ڲ����ɵ�·�ӿ�(I2C)��ʼ������ #####
+  *   ##### 内部集成电路接口(I2C)初始化函数 #####
   */
 /**
-  * ����  I2C���踴λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  I2C外设复位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Reset (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 #ifdef KF32A_Periph_i2c0
     if (I2Cx == I2C0_SFR)
@@ -76,17 +76,17 @@ I2C_Reset (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  I2C�������á�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       i2cInitStruct: I2Cģ��������Ϣ�ṹ��ָ�롣
-  * ����  �ޡ�
+  * 描述  I2C外设配置。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       i2cInitStruct: I2C模块配置信息结构体指针。
+  * 返回  无。
   */
 void
 I2C_Configuration (I2C_SFRmap* I2Cx, I2C_InitTypeDef* i2cInitStruct)
 {
     uint32_t tmpreg = 0;
 
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_MODE(i2cInitStruct->m_Mode));
     CHECK_RESTRICTION(CHECK_I2C_CLK(i2cInitStruct->m_ClockSource));
@@ -95,13 +95,13 @@ I2C_Configuration (I2C_SFRmap* I2Cx, I2C_InitTypeDef* i2cInitStruct)
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(i2cInitStruct->m_AckEn));
     CHECK_RESTRICTION(CHECK_I2C_ACKDATA(i2cInitStruct->m_AckData));
 
-    /*---------------------------- I2Cx_CTLR�Ĵ�������  -----------------*/
-    /* ���ݽṹ���Աm_Mode������SMBUSλ�� */
-    /* ���ݽṹ���Աm_ClockSource������I2CCKSλ�� */
-    /* ���ݽṹ���Աm_BADR10������BADR10λ�� */
-    /* ���ݽṹ���Աm_MasterSlave������SMBTλ�� */
-    /* ���ݽṹ���Աm_AckEn������ACKENλ�� */
-    /* ���ݽṹ���Աm_AckData������ACKDTλ�� */
+    /*---------------------------- I2Cx_CTLR寄存器配置  -----------------*/
+    /* 根据结构体成员m_Mode，设置SMBUS位域 */
+    /* 根据结构体成员m_ClockSource，设置I2CCKS位域 */
+    /* 根据结构体成员m_BADR10，设置BADR10位域 */
+    /* 根据结构体成员m_MasterSlave，设置SMBT位域 */
+    /* 根据结构体成员m_AckEn，设置ACKEN位域 */
+    /* 根据结构体成员m_AckData，设置ACKDT位域 */
 	tmpreg = ((i2cInitStruct->m_Mode)    \
 			| (i2cInitStruct->m_ClockSource)   \
 			| (i2cInitStruct->m_BADR10)  \
@@ -110,9 +110,9 @@ I2C_Configuration (I2C_SFRmap* I2Cx, I2C_InitTypeDef* i2cInitStruct)
 			| (i2cInitStruct->m_AckData));
     I2Cx->CTLR = SFR_Config (I2Cx->CTLR, ~I2C_CTLR_INIT_MASK, tmpreg);
 
-    /*---------------------------- I2Cx_BRGR�Ĵ�������  -----------------*/
-    /* ���ݽṹ���Աm_BaudRateL������I2CBRGLλ�� */
-    /* ���ݽṹ���Աm_BaudRateH������I2CBRGHλ�� */
+    /*---------------------------- I2Cx_BRGR寄存器配置  -----------------*/
+    /* 根据结构体成员m_BaudRateL，设置I2CBRGL位域 */
+    /* 根据结构体成员m_BaudRateH，设置I2CBRGH位域 */
     tmpreg = ((i2cInitStruct->m_BaudRateL << I2C_BRGR_I2CBRGL0_POS) \
             | (i2cInitStruct->m_BaudRateH << I2C_BRGR_I2CBRGH0_POS));
     I2Cx->BRGR = SFR_Config (I2Cx->BRGR,
@@ -121,455 +121,455 @@ I2C_Configuration (I2C_SFRmap* I2Cx, I2C_InitTypeDef* i2cInitStruct)
 }
 
 /**
-  * ����  ��ʼ��I2C������Ϣ�ṹ�塣
-  * ����  dacInitStruct: ָ�����ʼ���Ľṹ��ָ�롣
-  * ����  �ޡ�
+  * 描述  初始化I2C配置信息结构体。
+  * 输入  dacInitStruct: 指向待初始化的结构体指针。
+  * 返回  无。
   */
 void I2C_Struct_Init (I2C_InitTypeDef* I2C_InitStruct)
 {
-    /* ��ʼ�� I2Cģʽѡ��*/
+    /* 初始化 I2C模式选择*/
     I2C_InitStruct->m_Mode = I2C_MODE_I2C;
 
-    /* ��ʼ�� I2Cʱ��ѡ�� */
+    /* 初始化 I2C时钟选择 */
     I2C_InitStruct->m_ClockSource = I2C_CLK_SCLK;
 
-    /* ��ʼ�� I2C��ַѡ�� */
+    /* 初始化 I2C地址选择 */
     I2C_InitStruct->m_BADR10 = I2C_BUFRADDRESS_7BIT;
 
-    /* ��ʼ�� SMBus����ѡ�� */
+    /* 初始化 SMBus类型选择 */
     I2C_InitStruct->m_MasterSlave = I2C_MODE_SMBUSDEVICE;
 
-    /* ��ʼ�� SCL�͵�ƽռ�õ�ʱ�������� */
+    /* 初始化 SCL低电平占用的时钟周期数 */
     I2C_InitStruct->m_BaudRateL = 4;
 
-    /* ��ʼ�� SCL�ߵ�ƽռ�õ�ʱ�������� */
+    /* 初始化 SCL高电平占用的时钟周期数 */
     I2C_InitStruct->m_BaudRateH = 4;
 
-    /* ��ʼ�� I2CӦ��ʹ������ */
+    /* 初始化 I2C应答使能配置 */
     I2C_InitStruct->m_AckEn = FALSE;
 
-    /* ��ʼ�� I2CӦ������λ */
+    /* 初始化 I2C应答数据位 */
     I2C_InitStruct->m_AckData = I2C_ACKDATA_ACK;
 }
 /**
-  *   ##### �ڲ����ɵ�·�ӿ�(I2C)��ʼ������������� #####
+  *   ##### 内部集成电路接口(I2C)初始化函数定义结束 #####
   */
 
 
 /**
-  *   ##### �ڲ����ɵ�·�ӿ�(I2C)�������ú��� #####
+  *   ##### 内部集成电路接口(I2C)功能配置函数 #####
   */
 /**
-  * ����  ����I2Cʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2Cʹ��λ������Ϣ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C使能位配置信息，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Cmd(I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���I2CENλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器I2CEN位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C */
+        /* 使能I2C */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_I2CEN_POS);
     }
     else
     {
-        /* ��ֹI2C */
+        /* 禁止I2C */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_I2CEN_POS);
     }
 }
 
 /**
-  * ����  ����I2C10λ��ַʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2Cʹ��λ������Ϣ��
-  *                 ȡֵΪ I2C_BUFRADDRESS_10BIT �� I2C_BUFRADDRESS_7BIT��
-  * ����  �ޡ�
+  * 描述  控制I2C10位地址使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C使能位配置信息，
+  *                 取值为 I2C_BUFRADDRESS_10BIT 或 I2C_BUFRADDRESS_7BIT。
+  * 返回  无。
   */
 void
 I2C_Bufr_Address_Config(I2C_SFRmap* I2Cx, uint32_t NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_BUFR_ADDRESS(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���BADR10λ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器BADR10位 ----------------*/
     if (NewState != I2C_BUFRADDRESS_7BIT)
     {
-        /* I2Cģ��ʹ��10λ��ַ */
+        /* I2C模块使用10位地址 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_BADR10_POS);
     }
     else
     {
-        /* I2Cģ��ʹ��7λ��ַ */
+        /* I2C模块使用7位地址 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_BADR10_POS);
     }
 }
 
 /**
-  * ����  ����I2C_����ʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C����ʹ��λ������Ϣ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C_启动使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C启动使能位配置信息，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Generate_START(I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���SENλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器SEN位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C���� */
+        /* 使能I2C启动 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_SEN_POS);
     }
     else
     {
-        /* ��ֹI2C���� */
+        /* 禁止I2C启动 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_SEN_POS);
     }
 }
 
 /**
-  * ����  ����I2Cֹͣ����ʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2Cֹͣ����ʹ��λ������Ϣ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C停止条件使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C停止条件使能位配置信息，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Generate_STOP(I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���PENλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器PEN位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2Cֹͣ���� */
+        /* 使能I2C停止条件 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_PEN_POS);
     }
     else
     {
-        /* ��ֹI2Cֹͣ���� */
+        /* 禁止I2C停止条件 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_PEN_POS);
     }
 }
 
 /**
-  * ����  ����I2C_AckӦ��ʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2CӦ��ʹ��λ������Ϣ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C_Ack应答使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C应答使能位配置信息，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Ack_Config (I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���ACKENλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器ACKEN位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C_Ack */
+        /* 使能I2C_Ack */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ACKEN_POS);
     }
     else
     {
-        /* ��ֹI2C_Ack */
+        /* 禁止I2C_Ack */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ACKEN_POS);
     }
 }
 
 /**
-  * ����  ����I2C_AckӦ������λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2CӦ������λ������Ϣ��ȡֵΪ
-  *                   I2C_ACKDATA_ACK:  Ӧ��
-  *                   I2C_ACKDATA_NO_ACK: ��Ӧ��
-  * ����  �ޡ�
+  * 描述  控制I2C_Ack应答数据位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C应答数据位配置信息，取值为
+  *                   I2C_ACKDATA_ACK:  应答
+  *                   I2C_ACKDATA_NO_ACK: 不应答
+  * 返回  无。
   */
 void
 I2C_Ack_DATA_Config (I2C_SFRmap* I2Cx, uint32_t NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_ACKDATA(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���ACKDTλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器ACKDT位 ----------------*/
     if (NewState != I2C_ACKDATA_ACK)
     {
-        /* ��Ӧ��*/
+        /* 不应答*/
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ACKDT_POS);
     }
     else
     {
-        /* Ӧ�� */
+        /* 应答 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ACKDT_POS);
     }
 }
 
 /**
-  * ����  ����I2C_Callʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C_Callʹ��λ������Ϣ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C_Call使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C_Call使能位配置信息，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Call_Cmd (I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���GCENλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器GCEN位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C_Call */
+        /* 使能I2C_Call */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_GCEM_POS);
     }
     else
     {
-        /* ��ֹI2C_Call */
+        /* 禁止I2C_Call */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_GCEM_POS);
     }
 }
 
 /**
-  * ����  ����I2C����ʱ��ѡ��Ĵ�����
-  * ����  ClkSource: ʱ��ѡ��ȡֵ��ΧΪ��
-  *                    I2C_CLK_SCLK: ѡ��SCLKΪI2C����ʱ��
-  *                    I2C_CLK_HFCLK: ѡ��HFCLKΪI2C����ʱ��
-  *                    I2C_CLK_LFCLK: ѡ��LFCLKΪI2C����ʱ��
-  * ����  �ޡ�
+  * 描述  配置I2C工作时钟选择寄存器。
+  * 输入  ClkSource: 时钟选择，取值范围为：
+  *                    I2C_CLK_SCLK: 选用SCLK为I2C工作时钟
+  *                    I2C_CLK_HFCLK: 选用HFCLK为I2C工作时钟
+  *                    I2C_CLK_LFCLK: 选用LFCLK为I2C工作时钟
+  * 返回  无。
   */
 void
 I2C_Clock_Config (I2C_SFRmap* I2Cx,uint32_t ClkSource)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_CLK(ClkSource));
 
-    /*---------------- ����USART_CTLR�Ĵ���I2CCKSλ ----------------*/
+    /*---------------- 设置USART_CTLR寄存器I2CCKS位 ----------------*/
     I2Cx->CTLR = SFR_Config (I2Cx->CTLR, ~I2C_CTLR_I2CCKS, ClkSource);
 }
 
 /**
-  * ����  ����I2C��ַ�Ĵ���ƥ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C_��ַ�Ĵ���ƥ��λ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C地址寄存器匹配位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C_地址寄存器匹配位，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_MATCH_ADDRESS_Config (I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����USART_CTLR�Ĵ���MTHALLλ ----------------*/
+    /*---------------- 设置USART_CTLR寄存器MTHALL位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ����������ܵĵ�ַ�ϲ����жϣ���ʹ������������ϵ�����ͨ���� */
+        /* 可在任意接受的地址上产生中断，将使器件监控总线上的所有通信量 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_MTHALL_POS);
     }
     else
     {
-        /* ֻ����I2CADDR��ַƥ��ʱ�Ż�������� */
+        /* 只有在I2CADDR地址匹配时才会接收数据 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_MTHALL_POS);
     }
 }
 
 /**
-  * ����  ����I2C SCL���ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C_SCL���ʹ�ܣ�ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C SCL输出使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C_SCL输出使能，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_SCL_Enable (I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���ENASCLλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器ENASCL位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ����ʹ��SCL�� */
+        /* 正常使用SCL线 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ENASCL_POS);
     }
     else
     {
-        /* SCL��ǿ��Ϊ�� */
+        /* SCL被强制为高 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ENASCL_POS);
     }
 }
 
 /**
-  * ����  ����I2C ���ģʽʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C_���ģʽʹ��λ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C 监控模式使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C_监控模式使能位，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_NMENA_Enable(I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���NMENAλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器NMENA位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ�ܼ��ģʽ */
+        /* 使能监控模式 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_NMENA_POS);
     }
     else
     {
-        /* ��ʹ�ܼ��ģʽ */
+        /* 不使能监控模式 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_NMENA_POS);
     }
 }
 
 /**
-  * ����  ����SMBusģʽʹ���źš�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: SMBusģʽʹ���źţ�ȡֵΪ:
-  *                   I2C_MODE_SMBUS: SMBusģʽ
-  *                   I2C_MODE_I2C: I2Cģʽ
-  * ����  �ޡ�
+  * 描述  控制SMBus模式使能信号。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: SMBus模式使能信号，取值为:
+  *                   I2C_MODE_SMBUS: SMBus模式
+  *                   I2C_MODE_I2C: I2C模式
+  * 返回  无。
   */
 void
 I2C_SMBUS_Enable(I2C_SFRmap* I2Cx, uint32_t NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_MODE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���SMBUSλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器SMBUS位 ----------------*/
     if (NewState != I2C_MODE_I2C)
     {
-        /* 1 = SMBusģʽ */
+        /* 1 = SMBus模式 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_SMBUS_POS);
     }
     else
     {
-        /* 0 = I2Cģʽ */
+        /* 0 = I2C模式 */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_SMBUS_POS);
     }
 }
 
 /**
-  * ����  ����SMBUS���͡�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: SMBUS���ͣ�ȡֵΪ:
-  *                   I2C_MODE_SMBUSHOST: SMBus����
-  *                   I2C_MODE_SMBUSDEVICE: SMBus�豸
-  * ����  �ޡ�
+  * 描述  控制SMBUS类型。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: SMBUS类型，取值为:
+  *                   I2C_MODE_SMBUSHOST: SMBus主机
+  *                   I2C_MODE_SMBUSDEVICE: SMBus设备
+  * 返回  无。
   */
 void
 I2C_SMBT_Config(I2C_SFRmap* I2Cx, uint32_t NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_SMBUS_MODE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���SMBTλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器SMBT位 ----------------*/
     if (NewState != I2C_MODE_SMBUSDEVICE)
     {
-        /* SMBus���� */
+        /* SMBus主机 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_SMBT_POS);
     }
     else
     {
-        /* SMBus�豸*/
+        /* SMBus设备*/
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_SMBT_POS);
     }
 }
 
 /**
-  * ����  ����SMBus���ѡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: SMBus���ѣ�ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制SMBus提醒。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: SMBus提醒，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_SMBus_ALERT_Config(I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���ALERTλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器ALERT位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ����SMBALT����ʹ���� */
+        /* 驱动SMBALT引脚使其变低 */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ALERT_POS);
     }
     else
     {
-        /* �ͷ�SMBALT����ʹ����*/
+        /* 释放SMBALT引脚使其变高*/
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ALERT_POS);
     }
 }
 
 /**
-  * ����  I2C�������ݡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR����
-  *       Data: д�����ݼĴ�����ֵ��ȡֵΪ10λ���ݡ�
-  * ����  �ޡ�
+  * 描述  I2C发送数据。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。。
+  *       Data: 写入数据寄存器的值，取值为10位数据。
+  * 返回  无。
   */
 void
 I2C_SendData (I2C_SFRmap* I2Cx, uint32_t Data)
 {
-     /* ����У�� */
+     /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_BUFR(Data));
 
-    /*---------------- ����I2C_BUFR�Ĵ��� ----------------*/
+    /*---------------- 配置I2C_BUFR寄存器 ----------------*/
     I2Cx->BUFR = Data;
 }
 
 /**
-  * ����  I2C����8λ���ݡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR����
-  *       Data: д�����ݼĴ�����ֵ��ȡֵΪ8λ���ݡ�
-  * ����  �ޡ�
+  * 描述  I2C发送8位数据。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。。
+  *       Data: 写入数据寄存器的值，取值为8位数据。
+  * 返回  无。
   */
 void
 I2C_SendData8 (I2C_SFRmap* I2Cx, uint8_t Data)
 {
-     /* ����У�� */
+     /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_BUFR(Data));
 
-    /*---------------- ����I2C_BUFR�Ĵ��� ----------------*/
+    /*---------------- 配置I2C_BUFR寄存器 ----------------*/
     I2Cx->BUFR = Data;
 }
 
 /**
-  * ����  I2C�������ݡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR����
-  * ����  32λ�������ݵ�10λ���ݡ�
+  * 描述  I2C接收数据。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。。
+  * 返回  32位类型数据的10位数据。
   */
 uint32_t I2C_ReceiveData(I2C_SFRmap* I2Cx)
 {
     uint32_t tmpreg = 0;
 
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_BUFR�Ĵ��� ----------------*/
+    /*---------------- 获取I2C_BUFR寄存器 ----------------*/
     tmpreg = I2Cx->BUFR;
     tmpreg &= I2C_BUFR_I2CBUF;
     tmpreg >>= I2C_BUFR_I2CBUF0_POS;
@@ -578,37 +578,37 @@ uint32_t I2C_ReceiveData(I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ����I2C_ARPʹ��λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C_ARPʹ��λ������Ϣ��ȡֵΪ TRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  控制I2C_ARP使能位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C_ARP使能位配置信息，取值为 TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_ARP_Enable(I2C_SFRmap* I2Cx, FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_CTLR�Ĵ���ARPENλ ----------------*/
+    /*---------------- 配置I2C_CTLR寄存器ARPEN位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C_ARP */
+        /* 使能I2C_ARP */
         SFR_SET_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ARPEN_POS);
     }
     else
     {
-        /* ��ֹI2C_ARP */
+        /* 禁止I2C_ARP */
         SFR_CLR_BIT_ASM(I2Cx->CTLR, I2C_CTLR_ARPEN_POS);
     }
 }
 
 /**
-  * ����  ����I2C��ַλ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       AddrSelect: ��ַ�Ĵ���ѡ��ȡֵΪ0x0~0x3��
-  *       Data: ��ַλѡ��ȡֵΪ0x0~0x3FF��
-  * ����  �ޡ�
+  * 描述  配置I2C地址位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       AddrSelect: 地址寄存器选择，取值为0x0~0x3。
+  *       Data: 地址位选择，取值为0x0~0x3FF。
+  * 返回  无。
   */
 void
 I2C_ADDR_Config(I2C_SFRmap* I2Cx, uint32_t AddrSelect, uint32_t Data)
@@ -616,12 +616,12 @@ I2C_ADDR_Config(I2C_SFRmap* I2Cx, uint32_t AddrSelect, uint32_t Data)
     uint32_t tmpreg = 0;
     uint32_t tmpaddr = 0;
 
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_ADDR_REGISTER(AddrSelect));
     CHECK_RESTRICTION(CHECK_I2C_ADDR(Data));
 
-    /*---------------- ����I2C_ADDR�Ĵ���I2CADDλ ----------------*/
+    /*---------------- 设置I2C_ADDR寄存器I2CADD位 ----------------*/
     tmpreg = Data << I2C_ADDR_I2CADD0_POS;
     if (0 == AddrSelect)
     {
@@ -639,11 +639,11 @@ I2C_ADDR_Config(I2C_SFRmap* I2Cx, uint32_t AddrSelect, uint32_t Data)
 }
 
 /**
-  * ����  ����I2C��ַ����λ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       AddrSelect: ��ַ�Ĵ���ѡ��ȡֵΪ0x0~0x3��
-  *       DataMask: ��ַλѡ��ȡֵΪ0x0~0x3FF��
-  * ����  �ޡ�
+  * 描述  配置I2C地址屏蔽位。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       AddrSelect: 地址寄存器选择，取值为0x0~0x3。
+  *       DataMask: 地址位选择，取值为0x0~0x3FF。
+  * 返回  无。
   */
 void
 I2C_MSK_Config(I2C_SFRmap* I2Cx, uint32_t AddrSelect, uint32_t DataMask)
@@ -651,12 +651,12 @@ I2C_MSK_Config(I2C_SFRmap* I2Cx, uint32_t AddrSelect, uint32_t DataMask)
     uint32_t tmpreg = 0;
     uint32_t tmpaddr = 0;
 
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_I2C_ADDR_REGISTER(AddrSelect));
     CHECK_RESTRICTION(CHECK_I2C_MSK(DataMask));
 
-    /*---------------- ����I2C_ADDR�Ĵ���λI2CMSK ----------------*/
+    /*---------------- 设置I2C_ADDR寄存器位I2CMSK ----------------*/
     tmpreg = DataMask << I2C_ADDR_I2CMSK0_POS;
     if (0 == AddrSelect)
     {
@@ -673,348 +673,348 @@ I2C_MSK_Config(I2C_SFRmap* I2Cx, uint32_t AddrSelect, uint32_t DataMask)
 }
 
 /**
-  * ����  ����I2C SCL�ߵ�ƽռ�õ�ʱ����������
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       Period: SCL�ߵ�ƽռ�õ�ʱ����������ȡֵΪ0x0~0xFFFF��
-  * ����  �ޡ�
+  * 描述  配置I2C SCL高电平占用的时钟周期数。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       Period: SCL高电平占用的时钟周期数，取值为0x0~0xFFFF。
+  * 返回  无。
   */
 void
 I2C_BRGH_Config (I2C_SFRmap* I2Cx,uint16_t Period)
 {
     uint32_t tmpreg = 0;
 
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_ADDR�Ĵ���λI2CMSK ----------------*/
+    /*---------------- 设置I2C_ADDR寄存器位I2CMSK ----------------*/
     tmpreg = (uint32_t)Period << I2C_BRGR_I2CBRGH0_POS;
     I2Cx->BRGR = SFR_Config (I2Cx->BRGR, ~I2C_BRGR_I2CBRGH, tmpreg);
 }
 
 /**
-  * ����  ����I2C SCL�͵�ƽռ�õ�ʱ����������
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       Period: SCL�͵�ƽռ�õ�ʱ����������ȡֵΪ0x0~0xFFFF��
-  * ����  �ޡ�
+  * 描述  配置I2C SCL低电平占用的时钟周期数。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       Period: SCL低电平占用的时钟周期数，取值为0x0~0xFFFF。
+  * 返回  无。
   */
 void
 I2C_BRGL_Config (I2C_SFRmap* I2Cx,uint16_t Period)
 {
     uint32_t tmpreg = 0;
 
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_ADDR�Ĵ���λI2CMSK ----------------*/
+    /*---------------- 设置I2C_ADDR寄存器位I2CMSK ----------------*/
     tmpreg = (uint32_t)Period << I2C_BRGR_I2CBRGL0_POS;
     I2Cx->BRGR = SFR_Config (I2Cx->BRGR, ~I2C_BRGR_I2CBRGL, tmpreg);
 }
 /**
-  *   ##### �ڲ����ɵ�·�ӿ�(I2C)�������ú���������� #####
+  *   ##### 内部集成电路接口(I2C)功能配置函数定义结束 #####
   */
 
 
 /**
-  *   ##### �ڲ����ɵ�·�ӿ�(I2C)�жϹ������� #####
+  *   ##### 内部集成电路接口(I2C)中断管理函数 #####
   */
 /**
-  * ����  ����I2C��ʼ�ź��ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C��ʼ�ź��ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C起始信号中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C起始信号中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Start_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���SIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器SIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C��ʼ�ź��ж� */
+        /* 使能I2C起始信号中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_SIE_POS);
     }
     else
     {
-        /* ��ֹI2C��ʼ�ź��ж� */
+        /* 禁止I2C起始信号中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_SIE_POS);
     }
 }
 
 /**
-  * ����  ����I2Cֹͣ�ź��ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2Cֹͣ�ź��ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C停止信号中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C停止信号中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Stop_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���PIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器PIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2Cֹͣ�ź��ж� */
+        /* 使能I2C停止信号中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_PIE_POS);
     }
     else
     {
-        /* ��ֹI2Cֹͣ�ź��ж� */
+        /* 禁止I2C停止信号中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_PIE_POS);
     }
 }
 
 /**
-  * ����  ����I2CӦ������ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2CӦ������ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C应答错误中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C应答错误中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Ack_Fail_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���AFIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器AFIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2CӦ������ж� */
+        /* 使能I2C应答错误中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_AFIE_POS);
     }
     else
     {
-        /* ��ֹI2CӦ������ж� */
+        /* 禁止I2C应答错误中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_AFIE_POS);
     }
 }
 
 /**
-  * ����  ����I2Cʧȥ�ٲ��ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2Cʧȥ�ٲ��ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C失去仲裁中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C失去仲裁中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Arbitration_Lost_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���ARBLIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器ARBLIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2Cʧȥ�ٲ��ж� */
+        /* 使能I2C失去仲裁中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_ARBLIE_POS);
     }
     else
     {
-        /* ��ֹI2Cʧȥ�ٲ��ж� */
+        /* 禁止I2C失去仲裁中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_ARBLIE_POS);
     }
 }
 
 /**
-  * ����  ����SMBus�����ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: SMBus�����ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置SMBus提醒中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: SMBus提醒中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_SMBus_Alert_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���SMBAIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器SMBAIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��SMBus�����ж� */
+        /* 使能SMBus提醒中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_SMBAIE_POS);
     }
     else
     {
-        /* ��ֹSMBus�����ж� */
+        /* 禁止SMBus提醒中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_SMBAIE_POS);
     }
 }
 
 /**
-  * ����  ����SMBus����ͷϵ���ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: SMBus����ͷϵ���ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置SMBus主机头系列中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: SMBus主机头系列中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_SMBus_HostHead_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���SMBHIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器SMBHIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��SMBus����ͷϵ���ж� */
+        /* 使能SMBus主机头系列中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_SMBHIE_POS);
     }
     else
     {
-        /* ��ֹSMBus����ͷϵ���ж� */
+        /* 禁止SMBus主机头系列中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_SMBHIE_POS);
     }
 }
 
 /**
-  * ����  ����SMBus�豸Ĭ�ϵ�ַ�ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: SMBus�豸Ĭ�ϵ�ַ�ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置SMBus设备默认地址中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: SMBus设备默认地址中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_SMBus_Device_Defaultaddress_INT_Enable (I2C_SFRmap* I2Cx,
                     FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���SMBDIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器SMBDIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��SMBus�豸Ĭ�ϵ�ַ�ж� */
+        /* 使能SMBus设备默认地址中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_SMBDIE_POS);
     }
     else
     {
-        /* ��ֹSMBus�豸Ĭ�ϵ�ַ�ж� */
+        /* 禁止SMBus设备默认地址中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_SMBDIE_POS);
     }
 }
 
 /**
-  * ����  ����I2C�ж��ź�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C�ж��ź�״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C中断信号使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C中断信号状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_ISIE_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���ISIEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器ISIE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C�ж��ź� */
+        /* 使能I2C中断信号 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_ISIE_POS);
     }
     else
     {
-        /* ��ֹI2C�ж��ź� */
+        /* 禁止I2C中断信号 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_ISIE_POS);
     }
 }
 
 /**
-  * ����  ����I2C����DMA�ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C����DMA�ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C接收DMA中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C接收DMA中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Receive_DMA_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���IRCDEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器IRCDE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C����DMA�ж� */
+        /* 使能I2C接收DMA中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_IRCDE_POS);
     }
     else
     {
-        /* ��ֹI2C����DMA�ж� */
+        /* 禁止I2C接收DMA中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_IRCDE_POS);
     }
 }
 
 /**
-  * ����  ����I2C����DMA�ж�ʹ�ܡ�
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  *       NewState: I2C����DMA�ж�ʹ��״̬��ȡֵΪTRUE �� FALSE��
-  * ����  �ޡ�
+  * 描述  设置I2C发送DMA中断使能。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  *       NewState: I2C发送DMA中断使能状态，取值为TRUE 或 FALSE。
+  * 返回  无。
   */
 void
 I2C_Transmit_DMA_INT_Enable (I2C_SFRmap* I2Cx,FunctionalState NewState)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
     CHECK_RESTRICTION(CHECK_FUNCTIONAL_STATE(NewState));
 
-    /*---------------- ����I2C_IER�Ĵ���ITXDEλ ----------------*/
+    /*---------------- 设置I2C_IER寄存器ITXDE位 ----------------*/
     if (NewState != FALSE)
     {
-        /* ʹ��I2C����DMA�ж� */
+        /* 使能I2C发送DMA中断 */
         SFR_SET_BIT_ASM(I2Cx->IER, I2C_IER_ITXDE_POS);
     }
     else
     {
-        /* ��ֹI2C����DMA�ж� */
+        /* 禁止I2C发送DMA中断 */
         SFR_CLR_BIT_ASM(I2Cx->IER, I2C_IER_ITXDE_POS);
     }
 }
 
 /**
-  * ����  ��ȡI2C��ʼ�źű�־λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: �����ϳ�������ʼλ��
-  *       0: ������δ��������ʼλ��
+  * 描述  获取I2C起始信号标志位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 总线上出现了起始位；
+  *       0: 总线上未出现了起始位。
   */
 FlagStatus
 I2C_Get_Start_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���SIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器SIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_SIF)
     {
-        /* �����ϳ�������ʼλ */
+        /* 总线上出现了起始位 */
         return SET;
     }
     else
     {
-        /* ������δ��������ʼλ */
+        /* 总线上未出现了起始位 */
         return RESET;
     }
 }
 
 /**
-  * ����  ����I2C��ʼ�źű�־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零I2C起始信号标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_Start_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���SIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器SIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_SIF)>>I2C_SR_SIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_SIF_POS);
@@ -1022,42 +1022,42 @@ I2C_Clear_Start_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡI2Cֹͣ�źű�־λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: �����ϳ�����ֹͣλ��
-  *       0: ������δ������ֹͣλ��
+  * 描述  获取I2C停止信号标志位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 总线上出现了停止位；
+  *       0: 总线上未出现了停止位。
   */
 FlagStatus
 I2C_Get_Stop_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���PIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器PIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_PIF)
     {
-        /* �����ϳ�����ֹͣλ */
+        /* 总线上出现了停止位 */
         return SET;
     }
     else
     {
-        /* ������δ������ֹͣλ */
+        /* 总线上未出现了停止位 */
         return RESET;
     }
 }
 
 /**
-  * ����  ����I2Cֹͣ�źű�־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零I2C停止信号标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_Stop_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���PIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器PIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_PIF)>>I2C_SR_PIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_PIF_POS);
@@ -1066,117 +1066,117 @@ I2C_Clear_Stop_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡI2C��ַƥ��״̬λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: �ӻ��յ�ƥ���ַ��Ӧ�𣻣������ϳ���ֹͣλ��Ӳ�������״̬λ��
-  *       0: �ӻ�δ�յ���Ӧ��ַ��
+  * 描述  获取I2C地址匹配状态位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 从机收到匹配地址且应答；（总线上出现停止位将硬件清零该状态位）
+  *       0: 从机未收到对应地址。
   */
 FlagStatus
 I2C_Get_Address_Match_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���ADDRλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器ADDR位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_ADDR)
     {
-        /* �ӻ��յ�ƥ���ַ��Ӧ�� */
+        /* 从机收到匹配地址且应答 */
         return SET;
     }
     else
     {
-        /* �ӻ�δ�յ���Ӧ��ַ */
+        /* 从机未收到对应地址 */
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡI2C��λ��ַ״̬λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: �ϴν��ջ��͵��ֽ��Ǹ�λ��ַ��
-  *       0: �ϴν��ջ��͵��ֽڲ��Ǹ�λ��ַ��
+  * 描述  获取I2C高位地址状态位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 上次接收或发送的字节是高位地址；
+  *       0: 上次接收或发送的字节不是高位地址。
   */
 FlagStatus
 I2C_Get_HighAddress_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���ADD10λ ----------------*/
+    /*---------------- 读取I2C_SR寄存器ADD10位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_ADD10)
     {
-        /* �ϴν��ջ��͵��ֽ��Ǹ�λ��ַ */
+        /* 上次接收或发送的字节是高位地址 */
         return SET;
     }
     else
     {
-        /* �ϴν��ջ��͵��ֽڲ��Ǹ�λ��ַ*/
+        /* 上次接收或发送的字节不是高位地址*/
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡI2C��������״̬λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ��ʾ�ϴν��ջ��͵��ֽ������ݣ������ϳ�����ʼλ�������״̬λ��
-  *       0: ��ʾ�ϴν��ջ��͵��ֽ��ǵ�ַ��
+  * 描述  获取I2C数据内容状态位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 表示上次接收或发送的字节是数据（总线上出现起始位将清零该状态位）
+  *       0: 表示上次接收或发送的字节是地址。
   */
 FlagStatus
 I2C_Get_Data_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���DATAλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器DATA位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_DATA)
     {
-        /* ��ʾ�ϴν��ջ��͵��ֽ������� */
+        /* 表示上次接收或发送的字节是数据 */
         return SET;
     }
     else
     {
-        /* ��ʾ�ϴν��ջ��͵��ֽ��ǵ�ַ*/
+        /* 表示上次接收或发送的字节是地址*/
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡI2CӦ������־λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ������Ӧ�����
-  *       0: δ����Ӧ�����
+  * 描述  获取I2C应答错误标志位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 发生了应答错误；
+  *       0: 未发生应答错误。
   */
 FlagStatus
 I2C_Get_Ack_Fail_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���AFIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器AFIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_AFIF)
     {
-        /* ��ʾ�ϴν��ջ��͵��ֽ������� */
+        /* 表示上次接收或发送的字节是数据 */
         return SET;
     }
     else
     {
-        /* ��ʾ�ϴν��ջ��͵��ֽ��ǵ�ַ*/
+        /* 表示上次接收或发送的字节是地址 */
         return RESET;
     }
 }
 
 /**
-  * ����  ����I2CӦ������־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零I2C应答错误标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_Ack_Fail_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���AFIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器AFIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_AFIF)>>I2C_SR_AFIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_AFIF_POS);
@@ -1184,42 +1184,42 @@ I2C_Clear_Ack_Fail_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡI2Cʧȥ�ٲñ�־λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: �������ݹ�����ʧȥ�ٲã�
-  *       0: �������ݹ�����δʧȥ�ٲá�
+  * 描述  获取I2C失去仲裁标志位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 发送数据过程中失去仲裁；
+  *       0: 发送数据过程中未失去仲裁。
   */
 FlagStatus
 I2C_Get_Arbitration_Lost_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���ARBLIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器ARBLIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_ARBLIF)
     {
-        /* �������ݹ�����ʧȥ�ٲ� */
+        /* 发送数据过程中失去仲裁 */
         return SET;
     }
     else
     {
-        /* �������ݹ�����δʧȥ�ٲ�*/
+        /* 发送数据过程中未失去仲裁*/
         return RESET;
     }
 }
 
 /**
-  * ����  ����I2Cʧȥ�ٲñ�־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零I2C失去仲裁标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_Arbitration_Lost_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���ARBLIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器ARBLIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_ARBLIF)>>I2C_SR_ARBLIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_ARBLIF_POS);
@@ -1227,67 +1227,67 @@ I2C_Clear_Arbitration_Lost_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡI2C��/ д��Ϣ״̬λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ����Ϣ״̬λ��
-  *       0: д��Ϣ״̬λ��
+  * 描述  获取I2C读/ 写信息状态位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 读信息状态位；
+  *       0: 写信息状态位。
   */
 FlagStatus
 I2C_Get_Write_Read_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���RNWλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器RNW位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_RNW)
     {
-        /* ����Ϣ״̬λ*/
+        /* 读信息状态位*/
         return SET;
     }
     else
     {
-        /* д��Ϣ״̬λ*/
+        /* 写信息状态位*/
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡSMBus�����жϱ�־״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ����Ϣ״̬λ��
-  *       0: д��Ϣ״̬λ��
+  * 描述  获取SMBus提醒中断标志状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 读信息状态位；
+  *       0: 写信息状态位。
   */
 FlagStatus
 I2C_Get_SMBus_Alert_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���SMBAIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器SMBAIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_SMBAIF)
     {
-        /* ����SMBus�����¼�*/
+        /* 产生SMBus提醒事件*/
         return SET;
     }
     else
     {
-        /* ��SMBus����*/
+        /* 无SMBus提醒*/
         return RESET;
     }
 }
 
 /**
-  * ����  ����SMBus�����жϱ�־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零SMBus提醒中断标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_SMBus_Alert_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���SMBAIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器SMBAIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_SMBAIF)>>I2C_SR_SMBAIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_SMBAIF_POS);
@@ -1295,42 +1295,42 @@ I2C_Clear_SMBus_Alert_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡSMBus����ͷϵ���жϱ�־״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ����Ϣ״̬λ��
-  *       0: д��Ϣ״̬λ��
+  * 描述  获取SMBus主机头系列中断标志状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 读信息状态位；
+  *       0: 写信息状态位。
   */
 FlagStatus
 I2C_Get_SMBus_Host_Header_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���SMBHIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器SMBHIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_SMBHIF)
     {
-        /* ����SMBus�����¼�*/
+        /* 产生SMBus提醒事件*/
         return SET;
     }
     else
     {
-        /* ��SMBus����*/
+        /* 无SMBus提醒*/
         return RESET;
     }
 }
 
 /**
-  * ����  ����SMBus����ͷϵ���жϱ�־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零SMBus主机头系列中断标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_SMBus_Host_Header_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���SMBHIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器SMBHIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_SMBHIF)>>I2C_SR_SMBHIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_SMBHIF_POS);
@@ -1338,42 +1338,42 @@ I2C_Clear_SMBus_Host_Header_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡSMBus�豸Ĭ�ϵ�ַ(��ģʽ) ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ����Ϣ״̬λ��
-  *       0: д��Ϣ״̬λ��
+  * 描述  获取SMBus设备默认地址(从模式) 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 读信息状态位；
+  *       0: 写信息状态位。
   */
 FlagStatus
 I2C_Get_SMBus_Device_Default_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���SMBDIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器SMBDIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_SMBDIF)
     {
-        /* ��ARPEN=1ʱ���յ�SMBus�豸��Ĭ�ϵ�ַ*/
+        /* 当ARPEN=1时，收到SMBus设备的默认地址*/
         return SET;
     }
     else
     {
-        /* δ�յ�SMBus�豸��Ĭ�ϵ�ַ*/
+        /* 未收到SMBus设备的默认地址*/
         return RESET;
     }
 }
 
 /**
-  * ����  ����SMBus�豸Ĭ�ϵ�ַ(��ģʽ)��־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零SMBus设备默认地址(从模式)标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_SMBus_Device_Default_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���SMBDIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器SMBDIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_SMBDIF)>>I2C_SR_SMBDIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_SMBDIF_POS);
@@ -1381,42 +1381,42 @@ I2C_Clear_SMBus_Device_Default_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡI2C�ж��źű�־λ״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ������I2C�ж��źű�־λ��
-  *       0: δ����I2C�ж��źű�־λ��
+  * 描述  获取I2C中断信号标志位状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 产生了I2C中断信号标志位；
+  *       0: 未产生I2C中断信号标志位。
   */
 FlagStatus
 I2C_Get_INTERRUPT_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���ISIFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器ISIF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_ISIF)
     {
-        /* ������I2C�ж��źű�־λ*/
+        /* 产生了I2C中断信号标志位 */
         return SET;
     }
     else
     {
-        /* δ����I2C�ж��źű�־λ*/
+        /* 未产生I2C中断信号标志位 */
         return RESET;
     }
 }
 
 /**
-  * ����  ����I2C�ж��źű�־��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  �ޡ�
+  * 描述  清零I2C中断信号标志。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  无。
   */
 void
 I2C_Clear_INTERRUPT_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ����I2C_SR�Ĵ���ISIFλ ----------------*/
+    /*---------------- 清零I2C_SR寄存器ISIF位 ----------------*/
     while(((I2Cx->SR) & I2C_SR_ISIF)>>I2C_SR_ISIF_POS)
     {
     	SFR_CLR_BIT_ASM(I2Cx->SR, I2C_SR_ISIF_POS);
@@ -1425,104 +1425,104 @@ I2C_Clear_INTERRUPT_Flag (I2C_SFRmap* I2Cx)
 }
 
 /**
-  * ����  ��ȡI2C����BUFFΪ��״̬ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ����BUFFΪ����(�� I2Cx_BUFR �����λ)
-  *       0: ����BUFFΪ�ա�
+  * 描述  获取I2C接收BUFF为满状态 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 接收BUFF为满；(读 I2Cx_BUFR 清零该位)
+  *       0: 接收BUFF为空。
   */
 FlagStatus
 I2C_Get_Receive_Buff_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���RCBFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器RCBF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_RCBF)
     {
-        /* ����BUFFΪ��*/
+        /* 接收BUFF为满*/
         return SET;
     }
     else
     {
-        /* ����BUFFΪ��*/
+        /* 接收BUFF为空*/
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡI2C����BUFF״̬λ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: �ȴ�дI2Cx_BUFR��(д I2Cx_BUFR �����λ)
-  *       0: ����ҪдI2Cx_BUFR��
+  * 描述  获取I2C发送BUFF状态位 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 等待写I2Cx_BUFR；(写 I2Cx_BUFR 清零该位)
+  *       0: 不需要写I2Cx_BUFR。
   */
 FlagStatus
 I2C_Get_Transmit_Buff_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���TXBEλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器TXBE位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_TXBE)
     {
-        /* �ȴ�дI2Cx_BUFR*/
+        /* 等待写I2Cx_BUFR*/
         return SET;
     }
     else
     {
-        /* ����ҪдI2Cx_BUFR*/
+        /* 不需要写I2Cx_BUFR*/
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡI2C����DMA�жϱ�־λ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ������I2C����DMA�жϣ�
-  *       0: δ����I2C����DMA�жϡ�
+  * 描述  获取I2C接收DMA中断标志位 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 产生了I2C接收DMA中断；
+  *       0: 未产生I2C接收DMA中断。
   */
 FlagStatus
 I2C_Get_Receive_DMA_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���IRCDFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器IRCDF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_IRCDF)
     {
-        /* ������I2C����DMA�ж�*/
+        /* 产生了I2C接收DMA中断*/
         return SET;
     }
     else
     {
-        /* δ����I2C����DMA�ж�*/
+        /* 未产生I2C接收DMA中断*/
         return RESET;
     }
 }
 
 /**
-  * ����  ��ȡI2C����DMA�жϱ�־λ ��
-  * ����  I2Cx: ָ��I2C�ڴ�ṹ��ָ�룬ȡֵΪI2C0_SFR~I2C3_SFR��
-  * ����  1: ������I2C����DMA�жϣ�
-  *       0: δ����I2C����DMA�жϡ�
+  * 描述  获取I2C发送DMA中断标志位 。
+  * 输入  I2Cx: 指向I2C内存结构的指针，取值为I2C0_SFR~I2C3_SFR。
+  * 返回  1: 产生了I2C发送DMA中断；
+  *       0: 未产生I2C发送DMA中断。
   */
 FlagStatus
 I2C_Get_Transmit_DMA_Flag (I2C_SFRmap* I2Cx)
 {
-    /* ����У�� */
+    /* 参数校验 */
     CHECK_RESTRICTION(CHECK_I2C_ALL_PERIPH(I2Cx));
 
-    /*---------------- ��ȡI2C_SR�Ĵ���ITXDFλ ----------------*/
+    /*---------------- 读取I2C_SR寄存器ITXDF位 ----------------*/
     if ((I2Cx->SR) & I2C_SR_ITXDF)
     {
-        /* ������I2C����DMA�ж�*/
+        /* 产生了I2C发送DMA中断*/
         return SET;
     }
     else
     {
-        /* δ����I2C����DMA�ж�*/
+        /* 未产生I2C发送DMA中断*/
         return RESET;
     }
 }
 /**
-  *   ##### �ڲ����ɵ�·�ӿ�(I2C)�жϹ�������������� #####
+  *   ##### 内部集成电路接口(I2C)中断管理函数定义结束 #####
   */

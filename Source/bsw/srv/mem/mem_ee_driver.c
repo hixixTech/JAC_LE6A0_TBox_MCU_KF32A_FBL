@@ -19,14 +19,15 @@
 #include "mem_ee_driver.h"
 #include "ecu_flash.h"
 #include "ecu_misc.h"
-#include "FreeRTOS.h"
+//#include "FreeRTOS.h"
+#include "os_log.h"
 /*****************************************************************************
 ** #define
 *****************************************************************************/
-#define EEPROM_BASIC_ADDR       ((UINT32)(0x00070000))                  //EE 起始地址
+#define EEPROM_BASIC_ADDR       ((UINT32)(0x00073000))                  //EE 起始地址
 #define EEPROM_PAGE_SIZE        (0x400)                                 //页大小
 #define EEPROM_PAGE_NUM         (25u)                                   //页数量
-#define EEPRON_MAX_SIZE         (EEPROM_PAGE_SIZE * EEPROM_PAGE_NUM)    //EE空间大小   
+#define EEPRON_MAX_SIZE         (EEPROM_PAGE_SIZE * EEPROM_PAGE_NUM)    //EE空间大小
 
 #define EEPROM_WRITE_BYTE_MAX   (1024)
 
@@ -76,17 +77,14 @@ typedef enum
     EED_CMD_NOME = 0,
     EED_CMD_INIT,
     EED_CMD_ERASE,
-    EED_CMD_F_READ,
-    EED_CMD_R_READ,
-    EED_CMD_F_WRITE,
-    EED_CMD_R_WRITE,
+    EED_CMD_READ,
+    EED_CMD_WRITE,
     EED_CMD_END
 }EED_CMD_E;
 
 typedef enum
 {
     EED_READ = 0,
-    EED_WAIT_READ,
     EED_COMPARE
 }EED_ERASE_FSM_E;
 typedef struct
@@ -126,8 +124,8 @@ typedef struct
 {
     UINT8 u8_runpage_num;
     UINT8 u8_free_addr_count;
-    UINT32 u32_backpage0_addr;
-    UINT32 u32_backpage1_addr;
+    EED_PAGE_HEAD backpage0;
+    EED_PAGE_HEAD backpage1;
     UINT32 u32_free_addr[EEPROM_PAGE_MAX];
     EED_PAGE_HEAD page_head[EEPROM_PAGE_MAX];
 }EED_EE_PAGENWM;
@@ -156,21 +154,21 @@ static UINT8 s_u8_head_block[EEPROM_BLOCK_SIZE];
 static UINT32 Mem_EED_GetFreeAddr(void);
 static BOOL Mem_EED_GetPageSts(EED_PAGE_STS* p_page_sts,UINT16 u16_len,UINT16 offset);
 static BOOL Mem_EED_GetAbsoluteAddr(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head);
-static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,BOOL b_flag);
+static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head);
 static BOOL Mem_EED_GetEraseFlag(UINT32 u32_id,UINT16 u16_len,UINT16 u16_offset,BOOL* p_flag);
 /*****************************************************************************
 ** function prototypes
 *****************************************************************************/
 /****************************************************************************/
 /**
- * Function Name: Mem_EED_GetIdleSts
+ * Function Name: Mem_EED_WriteReadFinish
  * Description: none
  *
  * Param:   none
  * Return:  none
  * Author:  2021/06/10, feifei.xu create this function
  ****************************************************************************/
-BOOL Mem_EED_GetIdleSts(void)
+BOOL Mem_EED_WriteReadFinish(void)
 {
     EED_REQUEST_S* p_request = &s_st_eed_request;
 
@@ -192,7 +190,7 @@ BOOL Mem_EED_GetIdleSts(void)
  * Return:  none
  * Author:  2021/06/07, feifei.xu create this function
  ****************************************************************************/
-void Mem_EED_Init(void)
+void Mem_EED_Init(UINT32 u32_byte_num)
 {
     EED_REQUEST_S* p_request = &s_st_eed_request;
 
@@ -201,6 +199,9 @@ void Mem_EED_Init(void)
     s_st_pagenwm.u8_free_addr_count = 0;
     memset(p_request->u8_read_buff,0x00,EEPROM_PAGE_SIZE);
     memset(p_request->u8_write_buff,0x00,EEPROM_PAGE_SIZE);
+    Mem_EED_RunPageNumInit(u32_byte_num);
+    Mem_EED_PageAddrInit();
+    Mem_EED_PageHeadInit();
 }
 /****************************************************************************/
 /**
@@ -305,8 +306,8 @@ void Mem_EED_PageHeadInit(void)
         s_st_pagenwm.page_head[u8_i].u32_addr = u32_addr;
     }
 
-    s_st_pagenwm.u32_backpage0_addr = Mem_EED_GetFreeAddr();
-    s_st_pagenwm.u32_backpage1_addr = Mem_EED_GetFreeAddr();;
+    s_st_pagenwm.backpage0.u32_addr = Mem_EED_GetFreeAddr();
+    s_st_pagenwm.backpage1.u32_addr = Mem_EED_GetFreeAddr();
 }
 /****************************************************************************/
 /**
@@ -317,7 +318,7 @@ void Mem_EED_PageHeadInit(void)
  * Return:  none
  * Author:  2021/06/07, feifei.xu create this function
  ****************************************************************************/
-BOOL Mem_EED_Read(UINT32 u32_id,UINT16 u16_len, UINT16 u16_offset)
+BOOL Mem_EED_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len,UINT16 u16_offset)
 {
     EED_REQUEST_S* p_request = &s_st_eed_request;
 
@@ -326,36 +327,39 @@ BOOL Mem_EED_Read(UINT32 u32_id,UINT16 u16_len, UINT16 u16_offset)
         return FALSE;
     }
 
-    p_request->e_cmd = EED_CMD_F_READ;
+    // p_request->e_cmd = EED_CMD_READ;
     p_request->u32_id = u32_id;
     memset(p_request->u8_read_buff,0x00,EEPROM_PAGE_SIZE);
 
+    //判断是否需要分页读
     if(FALSE == Mem_EED_GetPageSts(&p_request->page_sts,u16_len,u16_offset))
     {
         return FALSE;
     }
-
+    //获取绝对地址
     if(FALSE == Mem_EED_GetAbsoluteAddr(&p_request->page_sts,s_st_pagenwm.page_head))
     {
         return FALSE;
     }
 
-    return TRUE;
-}
-/****************************************************************************/
-/**
- * Function Name: Mem_EED_GetReadData
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/08, feifei.xu create this function
- ****************************************************************************/
-void Mem_EED_GetReadData(UINT8* u8_data,UINT16 u16_len)
-{
-    EED_REQUEST_S* p_request = &s_st_eed_request;
+    //读起始页数据
+    (void)Ecu_Flash_ReadWriteNumBlockData(  p_request->page_sts.u32_f_absaddr,
+                                            p_request->u8_read_buff,
+                                            p_request->page_sts.u16_f_len,
+                                            FALSE);
 
+    if(0x02 == p_request->page_sts.u8_page_num)
+    {
+        //读终止页数据
+        (void)Ecu_Flash_ReadWriteNumBlockData(  p_request->page_sts.u32_r_absaddr,
+                                                &p_request->u8_read_buff[p_request->page_sts.u16_f_len],
+                                                p_request->page_sts.u16_r_len,
+                                                FALSE);
+    }
+    //数据返回
     memcpy(u8_data,p_request->u8_read_buff,u16_len);
+
+    return TRUE;
 }
 /****************************************************************************/
 /**
@@ -375,31 +379,47 @@ BOOL Mem_EED_Write(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len,UINT16 u16_offset
     {
         return FALSE;
     }
-
+    //判断是否要执行换页算法
     if(FALSE == Mem_EED_GetEraseFlag(u32_id,u16_len,u16_offset,&b_flag))
     {
         return FALSE;
     }
 
-    p_request->e_cmd = EED_CMD_F_WRITE;
     p_request->u32_id = u32_id;
     memset(p_request->u8_write_buff,0x00,EEPROM_PAGE_SIZE);
     memcpy(p_request->u8_write_buff,u8_data,u16_len);
 
+    //判断是否需要分页
     if(FALSE == Mem_EED_GetPageSts(&p_request->page_sts,u16_len,u16_offset))
     {
         return FALSE;
     }
+    //执行换页算法
 
-    if(FALSE == Mem_EED_ChangePage(&p_request->page_sts,s_st_pagenwm.page_head,b_flag))
+    if(TRUE == b_flag)
     {
-        return FALSE;
+        (void)Mem_EED_ChangePage(&p_request->page_sts,s_st_pagenwm.page_head);
     }
 
+    //获取绝对地址
     if(FALSE == Mem_EED_GetAbsoluteAddr(&p_request->page_sts,s_st_pagenwm.page_head))
     {
         return FALSE;
     }
+    //写起始页数据
+    (void)Ecu_Flash_ReadWriteNumBlockData(  p_request->page_sts.u32_f_absaddr,
+                                            p_request->u8_write_buff,
+                                            p_request->page_sts.u16_f_len,
+                                            TRUE);
+    if(0x02 == p_request->page_sts.u8_page_num)
+    {
+        //写终止页数据
+        (void)Ecu_Flash_ReadWriteNumBlockData(  p_request->page_sts.u32_r_absaddr,
+                                                &p_request->u8_write_buff[p_request->page_sts.u16_f_len],
+                                                p_request->page_sts.u16_r_len,
+                                                TRUE);
+    }
+
     return TRUE;
 }
 
@@ -412,16 +432,12 @@ BOOL Mem_EED_Write(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len,UINT16 u16_offset
  * Return:  none
  * Author:  2021/06/09, feifei.xu create this function
  ****************************************************************************/
-static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,BOOL b_flag)
+static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head)
 {
 
     UINT16 u16_len = 0;
     UINT32 u32_addr = 0;
-
-    if(FALSE == b_flag)
-    {
-        return TRUE;
-    }
+    UINT32 u32_count = 0;
 
     u16_len = p_page_sts->u32_f_reladdr;    //相对地址就是需要复制的字节数
     u32_addr = s_st_pagenwm.page_head[p_page_sts->u8_f_pageid].u32_addr;
@@ -430,9 +446,8 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
     {
         return FALSE;
     }
-
-    u32_addr = s_st_pagenwm.u32_backpage0_addr;
-
+    
+    u32_addr = s_st_pagenwm.backpage0.u32_addr;
     if(FALSE == Ecu_Flash_ReadWriteNumBlockData(u32_addr,s_u8_page_buff,u16_len,TRUE))
     {
         return FALSE;
@@ -449,7 +464,7 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
             return FALSE;
         }
 
-        u32_addr = s_st_pagenwm.u32_backpage0_addr + p_page_sts->u32_f_reladdr + p_page_sts->u16_f_len;;
+        u32_addr = s_st_pagenwm.backpage0.u32_addr + p_page_sts->u32_f_reladdr + p_page_sts->u16_f_len;;
 
         if(FALSE == Ecu_Flash_ReadWriteNumBlockData(u32_addr,s_u8_page_buff,u16_len,TRUE))
         {
@@ -458,10 +473,10 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
     }
 
     u32_addr = s_st_pagenwm.page_head[p_page_sts->u8_f_pageid].u32_addr;
-    s_st_pagenwm.page_head[p_page_sts->u8_f_pageid].u32_addr = s_st_pagenwm.u32_backpage0_addr;
-    s_st_pagenwm.u32_backpage0_addr = u32_addr;
-    Ecu_Flash_ErasePage(s_st_pagenwm.u32_backpage0_addr);
-
+    s_st_pagenwm.page_head[p_page_sts->u8_f_pageid].u32_addr = s_st_pagenwm.backpage0.u32_addr;
+    s_st_pagenwm.backpage0.u32_addr = u32_addr;
+    Ecu_Flash_ErasePage(s_st_pagenwm.backpage0.u32_addr);
+    ApiLogPrint(_LOG_DEBUG,"ee erase page id:%x\n",s_st_pagenwm.backpage0.u32_addr);
     /*******************************************/
 
     if(0x02 == p_page_sts->u8_page_num)
@@ -474,8 +489,7 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
             return FALSE;
         }
 
-        u32_addr = s_st_pagenwm.u32_backpage1_addr;
-
+        u32_addr = s_st_pagenwm.backpage1.u32_addr;
         if(FALSE == Ecu_Flash_ReadWriteNumBlockData(u32_addr,s_u8_page_buff,u16_len,TRUE))
         {
             return FALSE;
@@ -492,7 +506,7 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
                 return FALSE;
             }
 
-            u32_addr = s_st_pagenwm.u32_backpage0_addr + p_page_sts->u32_f_reladdr + p_page_sts->u16_f_len;;
+            u32_addr = s_st_pagenwm.backpage1.u32_addr + p_page_sts->u32_f_reladdr + p_page_sts->u16_f_len;;
 
             if(FALSE == Ecu_Flash_ReadWriteNumBlockData(u32_addr,s_u8_page_buff,u16_len,TRUE))
             {
@@ -501,10 +515,12 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
         }
 
         u32_addr = s_st_pagenwm.page_head[p_page_sts->u8_r_pageid].u32_addr;
-        s_st_pagenwm.page_head[p_page_sts->u8_r_pageid].u32_addr = s_st_pagenwm.u32_backpage1_addr;
-        s_st_pagenwm.u32_backpage1_addr = u32_addr;
-        Ecu_Flash_ErasePage(s_st_pagenwm.u32_backpage1_addr);
+        s_st_pagenwm.page_head[p_page_sts->u8_r_pageid].u32_addr = s_st_pagenwm.backpage1.u32_addr;
+        s_st_pagenwm.backpage1.u32_addr = u32_addr;
+        Ecu_Flash_ErasePage(s_st_pagenwm.backpage1.u32_addr);
+        ApiLogPrint(_LOG_DEBUG,"ee erase page id:%x\n",s_st_pagenwm.backpage1.u32_addr);
     }
+
     return TRUE;
 }
 /****************************************************************************/
@@ -519,154 +535,26 @@ static BOOL Mem_EED_ChangePage(EED_PAGE_STS* p_page_sts, EED_PAGE_HEAD* p_head,B
 static BOOL Mem_EED_GetEraseFlag(UINT32 u32_id,UINT16 u16_len,UINT16 u16_offset,BOOL* p_flag)
 {
     BOOL b_reg = FALSE;
-    static EED_ERASE_FSM_E s_e_earse_fsm = EED_READ;
 
-    switch (s_e_earse_fsm)
+    if(TRUE == Mem_EED_Read(u32_id,s_u8_page_buff,u16_len,u16_offset))
     {
-        case EED_READ:
-            {
-                if(TRUE == Mem_EED_Read(u32_id,u16_len,u16_offset))
-                {
-                    s_e_earse_fsm = EED_WAIT_READ;
-                }
-            }
-            break;
-
-        case EED_WAIT_READ:
+        if(TRUE == Ecu_Misc_CompareByte(s_u8_page_buff,0xFF,u16_len))
         {
-            if(TRUE == Mem_EED_GetIdleSts())
-            {
-                Mem_EED_GetReadData(s_u8_page_buff,u16_len);
-                s_e_earse_fsm = EED_COMPARE;
-            }
+            *p_flag = FALSE;
         }
-        break;
-
-        case EED_COMPARE:
+        else
         {
-            if(TRUE == Ecu_Misc_CompareByte(s_u8_page_buff,0xFF,u16_len))
-            {
-                *p_flag = FALSE;
-            }
-            else
-            {
-                *p_flag = TRUE;
-            }
-            b_reg = TRUE;
-            s_e_earse_fsm = EED_READ;
+            *p_flag = TRUE;
         }
-        break;
-        
-        default:
-            break;
+        b_reg = TRUE;
     }
+    else
+    {
+        b_reg = FALSE;
+    }
+
     return b_reg;
 }
-/****************************************************************************/
-/**
- * Function Name: Mem_EED_Handler
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/07, feifei.xu create this function
- ****************************************************************************/
-void Mem_EED_Handler(void)
-{
-    EED_REQUEST_S* p_request = &s_st_eed_request;
-
-    switch (p_request->e_cmd)
-    {
-        case EED_CMD_INIT:
-        {
-
-            p_request->e_cmd = EED_CMD_END;
-        }   
-        break;
-
-        case EED_CMD_ERASE:
-        {
-            
-        }
-        break;
-
-        case EED_CMD_F_READ:
-        {
-            if(TRUE == Ecu_Flash_ReadWriteNumBlockData( p_request->page_sts.u32_f_absaddr,
-                                                        p_request->u8_read_buff,
-                                                        p_request->page_sts.u16_f_len,
-                                                        FALSE))
-            {
-                if(0x02 == p_request->page_sts.u8_page_num)
-                {
-                    p_request->e_cmd = EED_CMD_R_READ;
-                }
-                else
-                {
-                    p_request->e_cmd = EED_CMD_END;
-                }
-            }
-        }
-        break;
-        
-        case EED_CMD_R_READ:
-        {
-            if(TRUE == Ecu_Flash_ReadWriteNumBlockData( p_request->page_sts.u32_r_absaddr,
-                                                        &p_request->u8_read_buff[p_request->page_sts.u16_f_len],
-                                                        p_request->page_sts.u16_r_len,
-                                                        FALSE))
-            {
-                p_request->e_cmd = EED_CMD_END;
-            }
-        }
-        break;
-
-        case EED_CMD_F_WRITE:
-        {
-            if(TRUE == Ecu_Flash_ReadWriteNumBlockData( p_request->page_sts.u32_f_absaddr,
-                                                        p_request->u8_write_buff,
-                                                        p_request->page_sts.u16_f_len,
-                                                        TRUE))
-            {
-                if(0x02 == p_request->page_sts.u8_page_num)
-                {
-                    p_request->e_cmd = EED_CMD_R_WRITE;
-                }
-                else
-                {
-                    p_request->e_cmd = EED_CMD_END;
-                }
-            }
-        }
-            break;
-
-        case EED_CMD_R_WRITE:
-        {
-            if(TRUE == Ecu_Flash_ReadWriteNumBlockData( p_request->page_sts.u32_r_absaddr,
-                                                        &p_request->u8_write_buff[p_request->page_sts.u16_f_len],
-                                                        p_request->page_sts.u16_r_len,
-                                                        TRUE))
-            {
-                if(0x02 == p_request->page_sts.u8_page_num)
-                {
-                    p_request->e_cmd = EED_CMD_R_WRITE;
-                }
-                else
-                {
-                    p_request->e_cmd = EED_CMD_END;
-                }
-            }
-        }
-        break;
-
-        case EED_CMD_END:
-            break;
-        
-        default:
-            break;
-    }
-}
-
 /****************************************************************************/
 /**
  * Function Name: Mem_EED_GetPageSts

@@ -19,7 +19,6 @@
 **#include 
 *****************************************************************************/
 #include "os_log.h"
-
 #include "ecu_usart.h"
 #include "ecu_can.h"
 #include "ecu_spi.h"

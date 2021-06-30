@@ -189,7 +189,7 @@ BOOL Ecu_Flash_WriteBlockDataToCode(UINT32 u32_addr,UINT8* p_u8_buff, UINT16 u16
 /****************************************************************************/
 /**
  * Function Name: Ecu_Flash_ReadByte
- * Description: flash 程序区读单字节数据
+ * Description: flash 程序区读块数据，8个字节位1块
  *
  * Param:   
  * Return:  none

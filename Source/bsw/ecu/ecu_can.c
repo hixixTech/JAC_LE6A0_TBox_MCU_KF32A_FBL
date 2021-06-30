@@ -21,6 +21,8 @@
 *****************************************************************************/
 #include "system_init.h"
 #include "ecu_can.h"
+#include "ecu_gpio.h"
+#include "ecu_misc.h"
 #include <string.h>
 /*****************************************************************************
 ** #define
@@ -269,13 +271,19 @@ static CAN_ERR_E Ecu_Can_TransmitData(	CAN_SFRmap* CANx,   //CAN通道
 	CAN_MessageStructure.m_FrameFormat 		= u32_format;     	//帧格式
 	CAN_MessageStructure.m_RemoteTransmit 	= u32_type;	 		//帧类型
 	/* 发送缓冲器空 */
-	while(!CAN_Get_Transmit_Status(CANx,CAN_TX_BUFFER_STATUS));
+	delayus(120);	//120us
+	if(!CAN_Get_Transmit_Status(CANx,CAN_TX_BUFFER_STATUS))
+	{
+		return CAM_ERR_BUFFFULL;
+	}
 	/* 转载数据到发送缓冲器 */
 	CAN_Transmit_Message_Configuration(CANx,&CAN_MessageStructure);
-	CAN_Transmit_Single(CANx);
-
-	// while (!CAN_Get_Transmit_Status(CANx,CAN_TX_COMPLETE_OFF_STATUS));
-
+	CANx->CTLR = CANx->CTLR | 0x300;
+	delayus(5);
+	if((CANx->CTLR & CAN_CTLR_TXSTA) >> CAN_CTLR_TXSTA_POS)
+	{
+		return CAM_ERR_BUFFFULL;
+	}
 	return CAN_ERR_OK;
 }
 /****************************************************************************/
@@ -453,7 +461,7 @@ UINT8 ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  * Return:  none
  * Author:  2021/06/17, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
+BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count)
 {
 
 	UINT8 u8_i = 0;
@@ -469,9 +477,9 @@ BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
 		memcpy(p_can_msg[u8_i].u8_data,s_st_can0_var.rx_msg[u8_i].u8_data,8);
 		s_st_can0_var.rx_msg[u8_i].u32_id = 0x00;
 		s_st_can0_var.rx_msg[u8_i].u8_len = 0x00;
-		memset(s_st_can0_var.rx_msg[u8_i].u8_len,0x00,8);
+		memset(s_st_can0_var.rx_msg[u8_i].u8_data,0x00,8);
 	}
-	u8_count = s_st_can0_var.u8_count;
+	*u8_count = s_st_can0_var.u8_count;
 	s_st_can0_var.u8_count = 0;
 
 	return TRUE;
@@ -502,7 +510,7 @@ BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
 		memcpy(p_can_msg[u8_i].u8_data,s_st_can1_var.rx_msg[u8_i].u8_data,8);
 		s_st_can1_var.rx_msg[u8_i].u32_id = 0x00;
 		s_st_can1_var.rx_msg[u8_i].u8_len = 0x00;
-		memset(s_st_can1_var.rx_msg[u8_i].u8_len,0x00,8);
+		memset(s_st_can1_var.rx_msg[u8_i].u8_data,0x00,8);
 	}
 	u8_count = s_st_can1_var.u8_count;
 	s_st_can1_var.u8_count = 0;
@@ -535,7 +543,7 @@ BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
 		memcpy(p_can_msg[u8_i].u8_data,s_st_can2_var.rx_msg[u8_i].u8_data,8);
 		s_st_can2_var.rx_msg[u8_i].u32_id = 0x00;
 		s_st_can2_var.rx_msg[u8_i].u8_len = 0x00;
-		memset(s_st_can2_var.rx_msg[u8_i].u8_len,0x00,8);
+		memset(s_st_can2_var.rx_msg[u8_i].u8_data,0x00,8);
 	}
 	u8_count = s_st_can2_var.u8_count;
 	s_st_can2_var.u8_count = 0;
@@ -554,6 +562,8 @@ BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
  ****************************************************************************/
 void __attribute__((interrupt))_CAN1_exception (void)
 {
+	static UINT8 s_u8_addr = 0x00;
+
 	INT_Clear_Interrupt_Flag(c_st_can1_cfg.u32_Interrupt_Index);
 
 	if(CAN_Get_INT_Flag(c_st_can1_cfg.CANx,CAN_INT_RECEIVE) != RESET)
@@ -562,7 +572,9 @@ void __attribute__((interrupt))_CAN1_exception (void)
 		{
 			s_st_can1_var.u8_count = 0;
 		}
-		CAN_Receive_Message_Configuration(c_st_can1_cfg.CANx,0x00,&s_st_can1msg);
+		
+		CAN_Receive_Message_Configuration(c_st_can1_cfg.CANx,s_u8_addr,&s_st_can1msg);
+		s_u8_addr = s_u8_addr + 0x10;
 		CAN_Release_Receive_Buffer(c_st_can1_cfg.CANx,1);
 		if(CAN_FRAME_FORMAT_SFF == s_st_can1msg.m_FrameFormat)
 		{
@@ -575,6 +587,12 @@ void __attribute__((interrupt))_CAN1_exception (void)
 		s_st_can1_var.rx_msg[s_st_can1_var.u8_count].u8_len = s_st_can1msg.m_DataLength;
 		memcpy(s_st_can1_var.rx_msg[s_st_can1_var.u8_count].u8_data,s_st_can1msg.m_Data,8);
 		s_st_can1_var.u8_count++;
+
+		if(s_u8_addr >= 0xF0)
+		{
+			s_u8_addr = 0x00;
+		}
+
 	}
 }
 /****************************************************************************/
@@ -588,6 +606,7 @@ void __attribute__((interrupt))_CAN1_exception (void)
  ****************************************************************************/
 void __attribute__((interrupt))_CAN3_exception (void)
 {
+	static UINT8 s_u8_addr = 0x00;
 	INT_Clear_Interrupt_Flag(c_st_can2_cfg.u32_Interrupt_Index);
 
 	if(CAN_Get_INT_Flag(c_st_can2_cfg.CANx,CAN_INT_RECEIVE) != RESET)
@@ -596,7 +615,8 @@ void __attribute__((interrupt))_CAN3_exception (void)
 		{
 			s_st_can2_var.u8_count = 0;
 		}
-		CAN_Receive_Message_Configuration(c_st_can2_cfg.CANx,0x00,&s_st_can2msg);
+		CAN_Receive_Message_Configuration(c_st_can2_cfg.CANx,s_u8_addr,&s_st_can2msg);
+		s_u8_addr = s_u8_addr + 0x10;
 		CAN_Release_Receive_Buffer(c_st_can2_cfg.CANx,1);
 		if(CAN_FRAME_FORMAT_SFF == s_st_can2msg.m_FrameFormat)
 		{
@@ -609,6 +629,11 @@ void __attribute__((interrupt))_CAN3_exception (void)
 		s_st_can2_var.rx_msg[s_st_can2_var.u8_count].u8_len = s_st_can2msg.m_DataLength;
 		memcpy(s_st_can2_var.rx_msg[s_st_can2_var.u8_count].u8_data,s_st_can2msg.m_Data,8);
 		s_st_can2_var.u8_count++;
+
+		if(s_u8_addr >= 0xF0)
+		{
+			s_u8_addr = 0x00;
+		}
 	}
 }
 /****************************************************************************/
@@ -622,6 +647,7 @@ void __attribute__((interrupt))_CAN3_exception (void)
  ****************************************************************************/
 void __attribute__((interrupt))_CAN4_exception (void)
 {
+	static UINT8 s_u8_addr = 0x00;
 
 	INT_Clear_Interrupt_Flag(c_st_can0_cfg.u32_Interrupt_Index);
 
@@ -631,7 +657,8 @@ void __attribute__((interrupt))_CAN4_exception (void)
 		{
 			s_st_can0_var.u8_count = 0;
 		}
-		CAN_Receive_Message_Configuration(c_st_can0_cfg.CANx,0x00,&s_st_can0msg);
+		CAN_Receive_Message_Configuration(c_st_can0_cfg.CANx,s_u8_addr,&s_st_can0msg);
+		s_u8_addr = s_u8_addr + 0x10;
 		CAN_Release_Receive_Buffer(c_st_can0_cfg.CANx,1);
 		if(CAN_FRAME_FORMAT_SFF == s_st_can0msg.m_FrameFormat)
 		{
@@ -644,6 +671,11 @@ void __attribute__((interrupt))_CAN4_exception (void)
 		s_st_can0_var.rx_msg[s_st_can0_var.u8_count].u8_len = s_st_can0msg.m_DataLength;
 		memcpy(s_st_can0_var.rx_msg[s_st_can0_var.u8_count].u8_data,s_st_can0msg.m_Data,8);
 		s_st_can0_var.u8_count++;
+
+		if(s_u8_addr >= 0xF0)
+		{
+			s_u8_addr = 0x00;
+		}
 	}
 }
 /*****************************************************************************

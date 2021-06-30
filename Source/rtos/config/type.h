@@ -32,6 +32,7 @@
 typedef   	char 					CHAR;
 typedef   	unsigned char 		    UCHAR;
 typedef     unsigned char 	        BOOL;
+typedef     unsigned char 	        bool;
 typedef     signed char             INT8;  
 typedef     unsigned char           UINT8;  
 typedef     short                   INT16;  
@@ -69,8 +70,16 @@ typedef unsigned long long          uint64_t;
 #define TRUE        1
 #endif
 
+#ifndef true
+#define true        1
+#endif
+
 #ifndef FALSE
 #define FALSE       0
+#endif
+
+#ifndef false
+#define false       0
 #endif
 
 #ifndef NULL

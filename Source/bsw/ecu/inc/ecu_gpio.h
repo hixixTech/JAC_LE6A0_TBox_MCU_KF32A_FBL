@@ -94,7 +94,7 @@ typedef enum
 	GPIO_VBATD_OUT_EN,			/*64	PE4  输出*/
 	GPIO_MCU_BCALL_IN,			/*65	PE3  输入*/
 #endif
-	GPIO_NUM_MAX				//dont't delete this lin
+	GPIO_NUM_MAX				//dont't delete this line
 }GPIO_Name_E;
 /*****************************************************************************
 ** Constant Macro Definition

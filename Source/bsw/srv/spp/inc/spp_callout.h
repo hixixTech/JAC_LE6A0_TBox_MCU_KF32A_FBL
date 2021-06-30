@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /* Copyright (C), 2020, DIAS Automotive Electronic Systems Co; Ltd.          */
-/* File Name:     spp_callout.h                                         */
+/* File Name:     dias_spp_callout.h                                         */
 /* Author:        Jianzhou.Zhang         Version:  v11.01.01.01.00        Data£º 2020-01-03*/
 /* Description:   call back function define                                  */
 /*                                                                           */
@@ -16,47 +16,43 @@
 
 
 
-#ifndef SPP_CALLOUT_H
-#define SPP_CALLOUT_H
+#ifndef DIAS_SPP_CALLOUT_H
+#define DIAS_SPP_CALLOUT_H
 
-#include "spp_main.h"
+
 #include "spp_type.h"
 
-#define TIME_STEP   (10u)
+#define TIME_STEP   (1u)
 
-#define PROCESS_TIMES_ONE_CYCLE (8)
-extern SPPErrorCode_e SppHalInit(void);
+extern DiasErrorCode_e DiasSppHalInit(void);
 
-extern SPPErrorCode_e SppHalDeInit(void);
-
-
-extern SPPErrorCode_e SppHalOpen(void);
+extern DiasErrorCode_e DiasSppHalDeInit(void);
 
 
-extern SPPErrorCode_e SppHalClose(void);
-
-extern SPPErrorCode_e SppHalSendData(UINT8* pu8Tx, INT16 len);
+extern DiasErrorCode_e DiasHalOpen(void);
 
 
-extern SPPErrorCode_e SppSendReady(void);
+extern DiasErrorCode_e DiasSppHalClose(void);
+
+extern void DiasSppInitBuffer(void);
+
+
+extern DiasErrorCode_e DiasSppHalSendData(UINT8* tx, INT16 len);
 
 /******************************************************************************
-*  function name | SppHalRecvData
+*  function name | DiasSppHalRecvData
 *  content       | receive data from mpu
 *  parameter[1]  | recv_data :des address 
 *  parameter[2]  | length :data length
 *  notice        | 
 *  return        | data received length
 ******************************************************************************/
-extern INT16 SppHalRecvData(UINT8* pu8RecvData, UINT16 length);
+extern INT16 DiasSppHalRecvData(UINT8* recv_data, uint16_t length);
 
-//extern void SppEnterCritical(void);
-/* by s811 */
-//extern void SppLeaveCritical(void);
+extern void DiasSppEnterCritical(void);
 
-/*
-extern INT16 SppHalRecvDataBB(SppConnectType_e eConnectType,UINT8* recv_data, UINT16 length); 
-*/
+extern void DiasSppLeaveCritical(void);
+
 
 
 #endif //MCU_SPP_H

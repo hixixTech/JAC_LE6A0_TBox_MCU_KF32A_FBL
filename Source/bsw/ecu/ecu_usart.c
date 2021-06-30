@@ -78,7 +78,7 @@ static const USART_CFG_S s_c_debug_cfg =
 	0,										//波特率小数分母部分
 	USART_U7816R_PASSAGEWAY_TX0, 			//USART通道选择：TX0
 	INT_USART0,								//USART 中断向量
-	TRUE,									//USART RX中断使能
+	FALSE,									//USART RX中断使能
 	FALSE,									//USART TX中断使能
 	FALSE,									//USART RX DMA使能
 	FALSE									//USART TX DMA使能
@@ -104,7 +104,7 @@ static const USART_CFG_S s_c_ble_cfg =
 
 static const USART_CFG_S s_c_mpu_cfg =
 {
-	USART1_SFR, 							//USART选择：USART2
+	USART1_SFR, 							//USART选择：USART1
 	USART_MODE_FULLDUPLEXASY,				//USART模式配置：异步
 	USART_SLAVE_CLOCKSOURCE_EXTER,			//时钟源选择：从时钟源
 	USART_DIRECTION_FULL_DUPLEX,			//传输方向：全双工
@@ -114,15 +114,19 @@ static const USART_CFG_S s_c_mpu_cfg =
 	12,										//波特率小数分母部分  48M/(16*z(1+x/y))
 	USART_U7816R_PASSAGEWAY_TX0, 			//USART通道选择：TX0
 	INT_USART1,								//USART 中断向量
-	TRUE,									//USART RX中断使能
+	FALSE,									//USART RX中断使能
 	FALSE,									//USART TX中断使能
-	FALSE,									//USART RX DMA使能
+	TRUE,									//USART RX DMA使能
 	FALSE									//USART TX DMA使能
 };
 
 static USART_FIFO_S s_debug_var;
 static USART_FIFO_S s_ble_var;
 static USART_FIFO_S s_mpu_var;
+
+
+static USART_FIFO_S s_test_var;
+
 /*****************************************************************************
 ** static constants
 *****************************************************************************/
@@ -210,6 +214,15 @@ static INT32 Ecu_Usart_SendData(USART_SFRmap* USARTx,const UINT8* Databuf,const 
 	return OK;
 	
 }
+/****************************************************************************/
+/**
+ * Function Name: Ecu_Usart_GetRxDataAddr
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/06/25, feifei.xu create this function
+ ****************************************************************************/
 static UINT32 Ecu_Usart_GetRxDataAddr(USART_SFRmap* USARTx)
 {
 	return (UINT32)&USARTx->RBUFR;
@@ -252,6 +265,23 @@ void ApiUsartBleInit(void)
 void ApiUsartMpuInit(void)
 {
 	Ecu_Usart_Configure(&s_c_mpu_cfg);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiUsartDebugRxAddr
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/06/25, feifei.xu create this function
+ ****************************************************************************/
+UINT32 ApiGetRegAddrFormDebugRx(void)
+{
+	return Ecu_Usart_GetRxDataAddr(s_c_debug_cfg.USARTx);
+}
+UINT32 ApiGetRegAddrFormMpuRx(void)
+{
+	return Ecu_Usart_GetRxDataAddr(s_c_mpu_cfg.USARTx);
 }
 /****************************************************************************/
 /**
@@ -360,6 +390,31 @@ BOOL ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len)
 }
 /****************************************************************************/
 /**
+ * Function Name: ApiGetUartMpuStatus
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  create this function
+ ****************************************************************************/
+BOOL ApiGetUartMpuStatus(void)
+{
+    UINT8 u8RxStatus = USART_Get_Receive_BUFR_Ready_Flag(s_c_mpu_cfg.USARTx);
+    UINT8 u8Ret;
+
+    if(1 == u8RxStatus)
+    {
+        u8Ret = 0;/* 此时不能发送 */
+    }
+    else
+    {
+        u8Ret = 1;/* 此时可以发送 */
+    }
+
+    return u8Ret;
+}
+/****************************************************************************/
+/**
  * Function Name: _USART0_exception
  * Description: none
  *
@@ -411,14 +466,14 @@ void __attribute__((interrupt))_USART3_exception(void)
  ****************************************************************************/
 void __attribute__((interrupt))_USART1_exception(void)
 {
-	if(USART_Get_Receive_BUFR_Ready_Flag(s_c_mpu_cfg.USARTx))
-	{
-		if(s_mpu_var.u16_len >= FIFO_BUFF_SIZE)
-		{
-			s_mpu_var.u16_len = 0;
-		}
-		s_mpu_var.u8_buff[s_mpu_var.u16_len++] = USART_ReceiveData(s_c_mpu_cfg.USARTx);
-	}
+	// if(USART_Get_Receive_BUFR_Ready_Flag(s_c_mpu_cfg.USARTx))
+	// {
+	// 	if(spp_mpu_var.u16_len >= 2048)//sizeof(spp_mpu_var.u8_buff))
+	// 	{
+	// 		spp_mpu_var.u16_len = 0;
+	// 	}
+	// 	spp_mpu_var.u8_buff[spp_mpu_var.u16_len++] = USART_ReceiveData(s_c_mpu_cfg.USARTx);
+	// }
 }
 /****************************************************************************/
 

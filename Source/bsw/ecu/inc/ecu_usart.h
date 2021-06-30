@@ -24,8 +24,9 @@
 *****************************************************************************/
 
 /*****************************************************************************
-**  typedef
+** Constant Macro Definition
 *****************************************************************************/
+
 
 /*****************************************************************************
 ** System Macro Definition
@@ -62,6 +63,8 @@
 void ApiUsartDebugInit(void);
 void ApiUsartBleInit(void);
 void ApiUsartMpuInit(void);
+UINT32 ApiGetRegAddrFormDebugRx(void);
+UINT32 ApiGetRegAddrFormMpuRx(void);
 INT32 ApiUartDebugSend(const UINT8* u8_buff,const UINT32 u32_len);
 INT32 ApiUartBleSend(const UINT8* u8_buff,const UINT32 u32_len);
 INT32 ApiUartMpuSend(const UINT8* u8_buff,const UINT32 u32_len);
@@ -71,7 +74,6 @@ BOOL ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len);
 /*****************************************************************************
 ** other
 *****************************************************************************/
-
 
 /****************************************************************************/
 

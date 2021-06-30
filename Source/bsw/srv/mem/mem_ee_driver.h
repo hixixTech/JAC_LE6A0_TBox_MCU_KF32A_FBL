@@ -62,15 +62,14 @@
 /*****************************************************************************
 ** Function prototypeseb
 *****************************************************************************/
-BOOL Mem_EED_GetIdleSts(void);
+BOOL Mem_EED_WriteReadFinish(void);
 void Mem_EED_Init();
 void Mem_EED_RunPageNumInit(UINT32 u32_byte_num);
 void Mem_EED_PageAddrInit(void);
 void Mem_EED_PageHeadInit(void);
-BOOL Mem_EED_Read(UINT32 u32_id,UINT16 u16_len, UINT16 u16_offset);
-void Mem_EED_GetReadData(UINT8* u8_data,UINT16 u16_len);
+BOOL Mem_EED_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len,UINT16 u16_offset);
 BOOL Mem_EED_Write(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len,UINT16 u16_offset);
-void Mem_EED_Handler(void);
+void Mem_EED_Handler10ms(void);
 /*****************************************************************************
 ** other
 *****************************************************************************/
