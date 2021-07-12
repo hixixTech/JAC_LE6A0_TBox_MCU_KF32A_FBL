@@ -107,7 +107,7 @@ void ApiDlEcuResetBg(void)
     UINT8 *pu8Response;
 	UINT8 u8AppValid[64] = {0};
 
-	ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8AppValid[0]);
+	ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8AppValid[0]);
 
 	if((u8AppValid[1] == 0)&& (u8AppValid[2] == 0))
 	{

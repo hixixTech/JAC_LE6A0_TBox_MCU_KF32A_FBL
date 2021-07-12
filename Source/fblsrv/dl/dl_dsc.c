@@ -211,7 +211,7 @@ bool ApiDlDscEnterProgSession(UINT8 u8ResSuppress)
     tSemaphores.bProgrammingSession = true;
     tSemaphores.bSaSeedSent = false;
 
-	s32Ret = ApiFlashInit();              /*初始化flash驱动*/
+	// s32Ret = ApiFlashInit();              /*初始化flash驱动*/
 	
 	if (s32Ret == OK)
 	{

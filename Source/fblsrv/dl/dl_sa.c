@@ -88,16 +88,19 @@ static UINT32 DlJacSecu(UINT32 u32wSeed)
     UINT32  u32Key[4u];
     UINT32  u32V[2u];
     UINT8   u8SecConstBuffer[SA_CONST_BUFFER];
+    UINT8   pu8Buffer26[26];
     UINT8   i;
 	
     /* Read the const from non-volatile memory */
-    if(false == ApiNvramReadSyncInd(EEPID_DIAGDID_0xF18C,4,22,&u8SecConstBuffer[0]))
+    // if(false == ApiNvramReadSyncInd(EEPID_DIAGDID_0xF18C,4,22,&u8SecConstBuffer[0]))
+    if(FALSE == ApiNvramReadSyncInd(EEPID_DIAGDID_0xF18C,26,&pu8Buffer26[0]))
     {
         /* Error during sec const read - use the default */
         for (i=0u; i<4u; i++)
         {
             u8SecConstBuffer[i] = (UINT8)DEFAULT_SEC_CONST;
         }
+        memcpy((UINT8*)u8SecConstBuffer,(UINT8*)&pu8Buffer26[22],4);
     }
     else
     {
@@ -197,7 +200,7 @@ void ApiDlSecurityAccess(const UINT8 *pu8Data,UINT16 u16Length)
         }
         /* if the previous SA has been interrupted or invalid key received*/
 
-		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8Sa[0]);  /*读取上一次密钥交换是否失败*/
+		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8Sa[0]);  /*读取上一次密钥交换是否失败*/
 		
         if ((s32Ret == OK) && ((u8Sa[7] != false) && (u8Sa[7] != 0xFF)))   /*如果数据读取正确且上次密钥交换失败*/
         {
@@ -271,7 +274,7 @@ void ApiDlSecurityAccess(const UINT8 *pu8Data,UINT16 u16Length)
 
             tSemaphores.bLocked = false;
             /*if sa was successful clear sa_mute */
-            ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8Sa[0]);  /*如果密钥交换成功，清除失败标志位*/
+            ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8Sa[0]);  /*如果密钥交换成功，清除失败标志位*/
 			u8Sa[7] = 0;
 			ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8Sa[0]);
         }
@@ -280,7 +283,7 @@ void ApiDlSecurityAccess(const UINT8 *pu8Data,UINT16 u16Length)
             /* an invalid key requires the client to start from SA-requestSeed (ISO-14229)*/
             tSemaphores.bSaSeedSent = false;
 
-			s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8Sa[0]);
+			s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8Sa[0]);
 			
             if ((s32Ret != TRUE) && ((u8Sa[7] != false) &&(u8Sa[7] != 0xff)))
             {
@@ -294,7 +297,7 @@ void ApiDlSecurityAccess(const UINT8 *pu8Data,UINT16 u16Length)
             {
                 /* Set security mute in case of power up/ECU reset happen*/
 
-				ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8Sa[0]);
+				ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8Sa[0]);
 				u8Sa[7] = 1;
 				ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8Sa[0]);
 

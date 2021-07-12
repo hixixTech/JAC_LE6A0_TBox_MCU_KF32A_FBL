@@ -22,7 +22,7 @@
 /*****************************************************************************
 ** #define
 *****************************************************************************/
-
+#define WDT_FEED_CHECK_CNT 200U
 
 /*****************************************************************************
 ** typedef
@@ -105,7 +105,7 @@ void ApiSoftWdtDisable(void)
  * Return:  none
  * Author:  2021/07/07, feifei.xu create this function
  ****************************************************************************/
-void ApiSoftFeedDog(void)
+void ApiWdtSwtFeedDog(void)
 {
     IWDT_Feed_The_Dog();
 }
@@ -131,7 +131,7 @@ INT32 ApiHardWdttEnable(void)
  * Return:  none
  * Author:  2021/07/07, feifei.xu create this function
  ****************************************************************************/
-INT32 ApiHardWdtDisable(void)
+INT32 ApiWdtHwtDisable(void)
 {
     return ApiGpioOutputLow(GPIO_DOG_EN);  
 }
@@ -144,7 +144,7 @@ INT32 ApiHardWdtDisable(void)
  * Return:  none
  * Author:  2021/07/07, feifei.xu create this function
  ****************************************************************************/
-void ApiHardWdtFeedDog(void)
+void ApiWdtHwtFeedDog(void)
 {
     (void)ApiGpioOutputHigh(GPIO_WDI1);
     delayus(100);

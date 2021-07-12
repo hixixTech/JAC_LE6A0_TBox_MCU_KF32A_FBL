@@ -411,15 +411,17 @@ bool ApilLlTx(const UINT8* pu8TxBufferData)
 	}
 	else
 	{
-	    i = ApiCan2Send(CAN_SEND_ID,8,&pu8TxBufferData[0]);
-		if(i == CAN_RTN_OK)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		ApiCan2Send(CAN_SEND_ID,8,&pu8TxBufferData[0]);
+	    // i = ApiCan2Send(CAN_SEND_ID,8,&pu8TxBufferData[0]);
+		// if(i == CAN_RTN_OK)
+		// {
+		// 	return true;
+		// }
+		// else
+		// {
+		// 	return false;
+		// }
+		return true;
 	}
 }
 
@@ -434,10 +436,11 @@ bool ApilLlTx(const UINT8* pu8TxBufferData)
 bool ApilLlIsTxEmpty(void)
 {
 	UINT16 u16Timeout = 0xfff; 
-	while( ApiCan1TxState() && (u16Timeout != 0) )
-	{
-		--u16Timeout;
-	}
+	//TODO:
+	// while( ApiCan1TxState() && (u16Timeout != 0) )
+	// {
+	// 	--u16Timeout;
+	// }
 	
 	return (true);
 }

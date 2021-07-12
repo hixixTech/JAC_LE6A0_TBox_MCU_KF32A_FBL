@@ -72,7 +72,15 @@ BOOL ApiSPPAddEvent(UINT16 u16EventId, UINT8 * pucData, UINT16 u16DataLen)
     }
 }
 
-
+SPP_BOOL SPP_Send_DCPD_MSG_TO_MPU_FOTA_FBL_COM_Event(const DcpdPackageFBLCom_t* data)
+{
+    return sppc_AddEvent(SPP_USER_SEND_DCPD_MSG_TO_MPU_FOTA_FBL_COM_EVT, (SPP_Int8 *)data, sizeof(DcpdPackageFBLCom_t));
+}
+SPP_STATUS sppc_AddEvent(SPP_UInt16 event_id, UINT8 * pucData, UINT16 u16DataLen)
+{
+    SppSend(SPP_CONNECT_TYPE_MCU_4G,event_id,pucData,u16DataLen);
+    return TRUE;
+}
 /******************************************************************************
 *  function name | ApiSPPInit
 *  content       | initailise the spp

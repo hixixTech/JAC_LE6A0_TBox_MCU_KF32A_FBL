@@ -15,6 +15,23 @@
 #ifndef __TYPE_H__
 #define __TYPE_H__
 
+#define SWAP2(s) ((((s) >> 8) & 0xFFu) | (((s) << 8) & 0xFF00u))
+
+#define SWAP4(x) ((((x) >> 24) & 0xFFu) | ((((x) & 0xFF0000UL) >> 8) & 0xFF00u) \
+                      | (((x) & 0xFF00UL) << 8) | ((x) << 24))
+
+#define GET_UINT16(addr)        ((UINT16)((UINT16)(*(const UINT8*)(addr))<<8)|(UINT16)(*((const UINT8*)(addr)+1u)))
+#define GET_UINT32(addr)        ((((UINT32)(*((const UINT8*)(addr)+0u)))<<24)|\
+                                 (((UINT32)(*((const UINT8*)(addr)+1u)))<<16)|\
+                                 (((UINT32)(*((const UINT8*)(addr)+2u)))<< 8)|\
+                                 (((UINT32)(*((const UINT8*)(addr)+3u)))    ) )
+
+#define MSB(value)       ((UINT8)((value)>>8))
+#define LSB(value)       ((UINT8)(value))
+
+#define LONIBBLE(value)  ((UINT8)((UINT8)(value)&(UINT8)0x0f))
+#define HINIBBLE(value)  ((UINT8)(((UINT8)(value)<<4)&(UINT8)0xf0))
+
 /*****************************************************************************
 **#include 
 *****************************************************************************/

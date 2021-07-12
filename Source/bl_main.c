@@ -14,6 +14,7 @@
 /*---------------------------------------------------------------------------*/
 /* 头文件                                                                       */
 /*---------------------------------------------------------------------------*/
+#include "system_init.h"
 #include "bl_config_pc.h"
 #include "dl_engine.h"
 #include "dl_service.h"
@@ -26,7 +27,7 @@
 #include "spp_main.h"
 
 #include "bsw_init.h"
-#include "system_init.h"
+
 #include "os_log.h"
 /*---------------------------------------------------------------------------*/
 /* 类型定义                                                                  */
@@ -103,7 +104,9 @@ static void GlobalInit(void)
 	// (void)SPP_Add_DCPD_MSG_TO_MCU_FOTA_FBL_COM_Event_Listener(ApilLlFblFotaComMsgCb);
     SppSetListener(SPP_CONNECT_TYPE_MCU_4G,SPP_USER_RECV_DCPD_MSG_TO_MCU_FOTA_FBL_COM_EVT, ApilLlFblFotaComMsgCb);
 	SppSetListener(SPP_CONNECT_TYPE_MCU_4G,0x10, ApilLlFblFotaOtherEcuCb);
-	(void)SPP_Start();
+	SppInit(SPP_CONNECT_TYPE_MCU_4G);
+    // (void)SPP_Start();
+
 	// __EI();   /*暂时打开中断，后续等can报文改为查询时关闭*/
 }
 
@@ -156,6 +159,7 @@ void main(void)
         ApiTickTimers();
 		// ApiWdtSwtFeedDog();         /*周期喂狗*/
 		// ApiWdtHwtFeedDog();
+        JumpToApp();//TEST
         if (tSemaphores.bProgrammingSession == false)  /*如果不是刷新会话，进行校验*/
         {
             ApiApplicationStart();

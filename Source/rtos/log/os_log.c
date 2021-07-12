@@ -137,7 +137,7 @@ void ApiLogDisable(void)
     UINT32 pu32Temp[4];
     CHAR acBuf[20];
 
-    u32Timer = (UINT32)xTaskGetTickCount();
+    //TODO:u32Timer = (UINT32)xTaskGetTickCount();
     pu32Temp[0] = u32Timer % 1000;
     u32Timer =  u32Timer / 1000;
     pu32Temp[1] = u32Timer % 60;

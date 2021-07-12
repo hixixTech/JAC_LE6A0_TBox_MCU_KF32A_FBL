@@ -79,7 +79,7 @@
 								<option id="com.chipon32.chiponide.core.option.chipheadforLink.1430806803" name="型号内核" superClass="com.chipon32.chiponide.core.option.chipheadforLink" value="true" valueType="boolean"/>
 								<option id="com.chipon32.chiponide.core.option.disas1.1962236716" name="是否关闭反汇编" superClass="com.chipon32.chiponide.core.option.disas1" value="false" valueType="boolean"/>
 								<option id="com.chipon32.chiponide.core.option3.1851482953" name="*引入外部库(参照说明书添加)" superClass="com.chipon32.chiponide.core.option3"/>
-								<option id="com.chipon32.chiponide.core.option4.1470014263" name="芯片脚本文件" superClass="com.chipon32.chiponide.core.option4" value="-T&quot;${ProjDirPath}/Source/${CHIP_NAME}.ld&quot;" valueType="string"/>
+								<option id="com.chipon32.chiponide.core.option4.1470014263" name="芯片脚本文件" superClass="com.chipon32.chiponide.core.option4" value="-T&quot;${ProjDirPath}/Source/BootLoader.ld&quot;" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1841799076" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_RELS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

@@ -19,6 +19,7 @@
 /* 头文件                                                                    */
 /*---------------------------------------------------------------------------*/
 #include "type.h"
+#include "bsw_init.h"
 #include "bl_timer.h"
 #include "ll_target.h"
 #include "dl_engine.h"    /* get semaphores.sa_firstseed */
@@ -171,6 +172,7 @@ void ApiLlEcuInit(void)
 	
 	bsw_init();
 	app_init();
+	Mem_EE_Init();
 	
 	ApiLogPrint(_LOG_DEBUG,"FBL Main init complete!\n");
 
@@ -195,16 +197,16 @@ void ApiLlEcuInit(void)
 	// ApiWdtHwtInit();
 	// ApiWdtHwtEnable();
 
-   	s32Ret = ApiDflashInit();            /*dflash初始化TODO:*/
+   	// s32Ret = ApiDflashInit();            /*dflash初始化TODO:*/
 	if (s32Ret == ERROR)
 	{
 		ApiLogPrint(_LOG_CRITICAL, "BspInit:eepIniErr\n");
-		ApiDelayms(2);
+		delayms(2);
 	    ApiLogProcess();
 	}
 	else
 	{
-		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8InitData[0]);
+		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8InitData[0]);
 		if(s32Ret == FALSE)
 		{
 			ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8InitData[0]);

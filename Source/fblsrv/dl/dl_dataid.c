@@ -162,6 +162,7 @@ void ApiDlRdbyid(const UINT8 *pu8Data, UINT16 u16Length)
     UINT8 u8CurrentIdNo;
     UINT8* pu8Response;
 	INT32 s32Ret;
+    UINT8 u8Temp[10];
 
     /* abort all operations and do actions or return without action */
     if (ApiDlAbortPendingOperations(ALL) == false)
@@ -224,6 +225,7 @@ void ApiDlRdbyid(const UINT8 *pu8Data, UINT16 u16Length)
 
 				if(ptCurrentDidProp->eMemtype == INT_EEPROM)
 				{
+                    s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, 10, &u8Temp[0]);
 					if (0xF186u == ptCurrentDidProp->u16Did)
 			        {
 			            /* Active Diagnostic Session Data Identifier RFQ_JAC_045 */
@@ -239,23 +241,28 @@ void ApiDlRdbyid(const UINT8 *pu8Data, UINT16 u16Length)
 			        else if (0xF1FCu == ptCurrentDidProp->u16Did)
 			        {
 			            /* Software Valid Flag (SVF) - calculated from (SCS) */
-						s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 3, &pu8Response[2+u8DataIdx]);
+						//s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 3, &pu8Response[2+u8DataIdx]);
+                        memcpy((UINT8*)pu8Response[2+u8DataIdx],(UINT8*)&u8Temp[3],ptCurrentDidProp->u8Size);
 			        }
 			        else if(0xF1FBu == ptCurrentDidProp->u16Did)
 			        {
-						s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 2, &pu8Response[2+u8DataIdx]);
-			        }
+						//s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 2, &pu8Response[2+u8DataIdx]);
+                        memcpy((UINT8*)pu8Response[2+u8DataIdx],(UINT8*)&u8Temp[2],ptCurrentDidProp->u8Size);
+                    }
 					else if(0xF1FAu == ptCurrentDidProp->u16Did)
 					{
-						s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 1, &pu8Response[2+u8DataIdx]);
-					}
+						//s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 1, &pu8Response[2+u8DataIdx]);
+                        memcpy((UINT8*)pu8Response[2+u8DataIdx],(UINT8*)&u8Temp[1],ptCurrentDidProp->u8Size);
+                    }
 					else if(0xF012u == ptCurrentDidProp->u16Did)
 					{
-						s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 4, &pu8Response[2+u8DataIdx]);
-					}
+						//s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address, ptCurrentDidProp->u8Size, 4, &pu8Response[2+u8DataIdx]);
+                        memcpy((UINT8*)pu8Response[2+u8DataIdx],(UINT8*)&u8Temp[4],ptCurrentDidProp->u8Size);
+                    }
 					else
 					{
-							s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address,ptCurrentDidProp->u8Size,0,&pu8Response[2+u8DataIdx]);
+							memcpy((UINT8*)pu8Response[2+u8DataIdx],(UINT8*)&u8Temp[0],ptCurrentDidProp->u8Size);
+                            //s32Ret = ApiNvramReadSyncInd(ptCurrentDidProp->u32Address,ptCurrentDidProp->u8Size,0,&pu8Response[2+u8DataIdx]);
 					}
 				}
 				else

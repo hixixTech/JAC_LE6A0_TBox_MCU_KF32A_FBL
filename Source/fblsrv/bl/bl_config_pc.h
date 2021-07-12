@@ -53,7 +53,7 @@
 
 #define START_TABLE_ADDR_APP      (0x00038000uL)       /*APP的起始地址*/
 #define START_TABLE_ADDR_EOL      (0x00018000uL)       /*EOL的起始地址*/
-#define END_TABLE_ADDR_APP        (0x00100000uL)       /*APP的结束地址*/
+#define END_TABLE_ADDR_APP        (0x00080000uL)       /*APP的结束地址*/
 
 #define VAL_TABLE_ADDR_APP      (0x000FFFE4uL)       /*APP的有效性，存储app起始地址的地址*/
 #define VAL_TABLE_ADDR_EOL      (0x00037FE4uL)       /*EOL的有效性，eol起始地址*/

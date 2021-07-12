@@ -130,7 +130,7 @@ static void BlUpdateSisScs(void)
     UINT8 u8Prg[64];
 	INT32 s32Ret; 
 	
-	s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,0,&u8Prg[0]); 			
+	s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,&u8Prg[0]); 			
 	if(ERROR != s32Ret)
 	{
 		u8Prg[2] = u8SCSShadow;
@@ -149,7 +149,7 @@ static void BlUpdateSisScs(void)
 ******************************************************************************/
 void ApiApplicationStart(void)           /*跳转app函数*/
 {
-	UINT8 u8AppCheck[1] = {0x00};
+	UINT8 u8AppCheck[4] = {0x00};
 
 	UINT8 u8Fill[64] = {DATA_0xFF_64bytes};
     /*if the startup timeout has expired*/
@@ -157,28 +157,28 @@ void ApiApplicationStart(void)           /*跳转app函数*/
     {
 		INT32                s32Result;
 
-		s32Result = ApiNvramReadSyncInd(EEPID_FLHVLD,1,3,&u8AppCheck[0]);
+		s32Result = ApiNvramReadSyncInd(EEPID_FLHVLD,4,&u8AppCheck[0]);
 
 		if(FALSE == s32Result)
 		{
 			ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8Fill[0]);
-			ApiCanDeinit();
+			// ApiCanDeinit();
 			ApiWdtSwtFeedDog();         /*周期喂狗*/
 			ApiWdtHwtFeedDog();
 			ApiLlApplicationPrestart();                                 /*关闭taub*/
-			asm("mov 0x00038000,r7 ");
-			asm( "jmp [r7]" );
+			// asm("mov 0x00038000,r7 ");
+			// asm( "jmp [r7]" );
 		}
 
 		/* check stored integrity, compatibility */
-		if ( (s32Result == OK) && ( (0x01 == u8AppCheck[0]) || (0xff == u8AppCheck[0]) ) )  /*后续改为宏，如果检验通过或者数据是全ff则跳app*/
+		if ( (s32Result == OK) && ( (0x01 == u8AppCheck[3]) || (0xff == u8AppCheck[3]) ) )  /*后续改为宏，如果检验通过或者数据是全ff则跳app*/
 		{	
-			ApiCanDeinit();
+			// ApiCanDeinit();
 			ApiWdtSwtFeedDog();         /*周期喂狗*/
 			ApiWdtHwtFeedDog();
 			ApiLlApplicationPrestart();
-			asm("mov 0x00038000,r7 ");   /*后续改为宏LL_TARGET_SPECIFIC_JUMP*/
-			asm( "jmp [r7]" );
+			// asm("mov 0x00038000,r7 ");   /*后续改为宏LL_TARGET_SPECIFIC_JUMP*/
+			// asm( "jmp [r7]" );
 		}
 		else
 		{
@@ -231,7 +231,7 @@ void ApiApplCompatibilityChk(void)                      /*兼容性检查*/
 
 	u8SCSShadow = u8SwCompatibilityStatus;
 
-	s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,0,&u8AppComCheck[0]); 			
+	s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,&u8AppComCheck[0]); 			
 	if(ERROR != s32Ret)
 	{
 		u8AppComCheck[2] = u8SwCompatibilityStatus;
@@ -441,7 +441,7 @@ bool ApiApplIntegrityChk(void)                     /*完整性检查*/
 
 			u8SISShadow = u8OngoingSIS;
 
-			s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,0,&u8AppIntCheck[0]); 			
+			s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,&u8AppIntCheck[0]); 			
 			if(ERROR != s32Ret)
 			{
 				u8AppIntCheck[1] = u8OngoingSIS;
@@ -473,14 +473,14 @@ bool ApiApplicationValidate(void)
 	UINT8 u8ReadBuf[1];
     if(bInitShadow != true)
     {
-        //TODO:OFFSET:1&2
-		(void)ApiNvramReadSyncInd(EEPID_FLHVLD, 1, 1, &u8ReadBuf[0]);
-        u8SISShadow = u8ReadBuf[0];
-		(void)ApiNvramReadSyncInd(EEPID_FLHVLD, 1, 2, &u8ReadBuf[0]);
-        u8SCSShadow = u8ReadBuf[0];
-        // (void)ApiNvramReadSyncInd(EEPID_FLHVLD, 3, &u8ReadBuf[0]);
-        // u8SISShadow = u8ReadBuf[1];
-        // u8SCSShadow = u8ReadBuf[2];
+        // //TODO:OFFSET:1&2
+		// (void)ApiNvramReadSyncInd(EEPID_FLHVLD, 1, 1, &u8ReadBuf[0]);
+        // u8SISShadow = u8ReadBuf[0];
+		// (void)ApiNvramReadSyncInd(EEPID_FLHVLD, 1, 2, &u8ReadBuf[0]);
+        // u8SCSShadow = u8ReadBuf[0];
+        (void)ApiNvramReadSyncInd(EEPID_FLHVLD, 3, &u8ReadBuf[0]);
+        u8SISShadow = u8ReadBuf[1];
+        u8SCSShadow = u8ReadBuf[2];
         bInitShadow = true;
     }
 
@@ -520,7 +520,7 @@ void ApiApplicationInvalidate(void)
         return; /* clear not requested */
     }
 
-	s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,0,&u8App[0]);			
+	s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,&u8App[0]);			
 	if(ERROR != s32Ret)
 	{
 		u8App[1] = 0x01;
@@ -550,17 +550,17 @@ void ApiApplicationInvalidate(void)
 ******************************************************************************/
 UINT8 ApiGetSwCompatibilityStatus(void)
 {
-    UINT8 u8SwCompatibilityStatus[1] = {DEFAULT_SIS_SCS};
+    UINT8 u8SwCompatibilityStatus[3] = {0,0,DEFAULT_SIS_SCS};
 
 	INT32 s32Result;
 
 	if(bInitShadow != true)
 	{
-	s32Result = ApiNvramReadSyncInd(EEPID_FLHVLD,1,2,&u8SwCompatibilityStatus[0]);   /*读取完整性检查*/
+	s32Result = ApiNvramReadSyncInd(EEPID_FLHVLD,3,&u8SwCompatibilityStatus[0]);   /*读取完整性检查*/
 
     if(OK == s32Result)
 	    {
-        return (u8SwCompatibilityStatus[0]);
+        return (u8SwCompatibilityStatus[2]);
 	    }
 	    else
 	    {
@@ -583,16 +583,16 @@ UINT8 ApiGetSwCompatibilityStatus(void)
 ******************************************************************************/
 UINT8 ApiGetSwIntegrityStatus(void)
 {
-	UINT8 u8SwIntegrityStatus[1] = {DEFAULT_SIS_SCS};  /*初值设置为0x00还是0xff*/
+	UINT8 u8SwIntegrityStatus[2] = {0,DEFAULT_SIS_SCS};  /*初值设置为0x00还是0xff*/
 	INT32 s32Result = 0;
 
 	if(bInitShadow != true)
 	{
-	    s32Result = ApiNvramReadSyncInd(EEPID_FLHVLD,1,1,&u8SwIntegrityStatus[0]);   /*读取完整性检查*/
+	    s32Result = ApiNvramReadSyncInd(EEPID_FLHVLD,2,&u8SwIntegrityStatus[0]);   /*读取完整性检查*/
 
         if(OK == s32Result)
 	    {
-            return (u8SwIntegrityStatus[0]);
+            return (u8SwIntegrityStatus[1]);
 	    }
 	    else
 	    {

@@ -851,7 +851,7 @@ void ApiDlAppSwitchToProgramming(void)
        it will update Programming Entry Flag (PEF), and applies ECU reset.
        The application usually sends a "wait", to avoid bus error during reset.
     */
-	s32Retval = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,0,&u8ReadFlag[0]);  /*读取刷新入口标志位*/
+	s32Retval = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,&u8ReadFlag[0]);  /*读取刷新入口标志位*/
 
 	if(s32Retval == FALSE)
 	{

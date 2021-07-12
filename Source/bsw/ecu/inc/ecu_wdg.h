@@ -19,7 +19,7 @@
 **#include 
 *****************************************************************************/
 #include "type.h"
-#include "rtos_taskinit.h"
+// #include "rtos_taskinit.h"
 
 /*****************************************************************************
 **  typedef
@@ -85,6 +85,7 @@
 INT32 ApiWdtHwtEnable(void);
 INT32 ApiWdtHwtDisable(void);
 void ApiWdtHwtFeedDog(void);
+void ApiWdtSwtFeedDog(void);
 UINT8 ApiTaskWtdCheck(void);
 void ApiTaskFeedWtd(UINT8 u8FeedWtd);
 /*****************************************************************************

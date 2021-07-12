@@ -257,37 +257,41 @@ void ApiDlRequestdlBg(void)
 		{
 			if(tDl.u32AutErSize  == 0x00020000)
 			{
-				for(i = 0; i < 4; i++)
-				{
-					ApiWdtSwtFeedDog();
-					s32EraseResult = ApiFlashErase(&tReq,(9+i),1);
-				}
+				// for(i = 0; i < 4; i++)
+				// {
+				// 	ApiWdtSwtFeedDog();
+				// 	s32EraseResult = ApiFlashErase(&tReq,(9+i),1);
+                    
+				// }
+                s32EraseResult = ApiFlashErasePage(tDl.u32AutErAddress,tDl.u32AutErAddress+tDl.u32AutErSize);
 			}
 			else
 			{
-				for(i = 0; i < 29; i++)
-				{
-					ApiWdtSwtFeedDog();
-					ApiWdtHwtFeedDog();
-					s32EraseResult = ApiFlashErase(&tReq,(9+i),1);
-				}
+				// for(i = 0; i < 29; i++)
+				// {
+				// 	ApiWdtSwtFeedDog();
+				// 	ApiWdtHwtFeedDog();
+				// 	s32EraseResult = ApiFlashErase(&tReq,(9+i),1);
+				// }
+                s32EraseResult = ApiFlashErasePage(tDl.u32AutErAddress,0x80000);//erase all!
 			}
 		}
 		else if(tDl.u32AutErAddress == START_TABLE_ADDR_APP)
 		{
-			for(i = 0; i < 25; i++)
-			{
-				ApiWdtSwtFeedDog();
-				ApiWdtHwtFeedDog();
-				s32EraseResult = ApiFlashErase(&tReq,(13+i),1);
-			}
+			// for(i = 0; i < 25; i++)
+			// {
+			// 	ApiWdtSwtFeedDog();
+			// 	ApiWdtHwtFeedDog();
+			// 	s32EraseResult = ApiFlashErase(&tReq,(13+i),1);
+			// }
+            s32EraseResult = ApiFlashErasePage(tDl.u32AutErAddress,0x80000);
 		}
 		else
 		{
 		}
 
 		/*刷新计数更新*/
-		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, 0, &u8ProCnt[0]);
+		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8ProCnt[0]);
         if (OK == s32Ret)
         {
             u16ProgCtr = (((UINT16)u8ProCnt[4])<<8) | u8ProCnt[5];
@@ -521,7 +525,7 @@ void ApiDlTransferdataMore(void)
 void ApiDlTransferdatadlBg(void)
 {
     UINT8 *pu8Response;
-	r_fcl_request_t tReq;
+	// r_fcl_request_t tReq;
 	INT32 s32Ret;
 	UINT32 u32BtRet;
 
@@ -564,7 +568,8 @@ void ApiDlTransferdatadlBg(void)
 				ApiWdtSwtFeedDog();
 				if(tDl.eDlMemtype == INTFLASH)
 				{
-					s32Ret = ApiFlashWrite(&tReq, (UINT32)&tDl.pu8TdMessage[tDl.u16Outptr], tDl.u32WorkAddress, 4);
+                    s32Ret=Ecu_Flash_ReadWriteNumBlockData(tDl.u32WorkAddress,(UINT32)&tDl.pu8TdMessage[tDl.u16Outptr],  1024,TRUE);
+					// s32Ret = ApiFlashWrite(&tReq, (UINT32)&tDl.pu8TdMessage[tDl.u16Outptr], tDl.u32WorkAddress, 4);
 				}
 				
 	            if(s32Ret == ERROR)

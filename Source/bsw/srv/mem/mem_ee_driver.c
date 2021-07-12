@@ -19,7 +19,7 @@
 #include "mem_ee_driver.h"
 #include "ecu_flash.h"
 #include "ecu_misc.h"
-#include "FreeRTOS.h"
+// #include "FreeRTOS.h"
 #include "os_log.h"
 /*****************************************************************************
 ** #define
