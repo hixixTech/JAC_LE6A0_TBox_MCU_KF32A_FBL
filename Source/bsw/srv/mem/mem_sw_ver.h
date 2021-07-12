@@ -1,9 +1,9 @@
 /******************************************************************************
  * (C) Copyright 2020 Anhui Domain Compute Co.Ltd
- * FILE NAME:    ecu_flash.h
+ * FILE NAME:    mem_sw_ver.h
  * DESCRIPTION:
  * 
- * DATE BEGUN:   2021/05/20
+ * DATE BEGUN:   2021/07/08
  * BY:           feifei.xu
  * PRODUCT NAME:
  * APPLICATION:
@@ -12,21 +12,29 @@
  *****************************************************************************
  */
 
-#ifndef __ECU_FLASH_H__
-#define __ECU_FLASH_H__
+#ifndef __MEM_SW_VER_H__
+#define __MEM_SW_VER_H__
 
 /*****************************************************************************
 **#include 
 *****************************************************************************/
 #include "type.h"
+
+
 /*****************************************************************************
 **  typedef
 *****************************************************************************/
+#define VerStatus        (UINT8)'2'
+#define CarModePlate     (UINT8)'0',(UINT8)'2',(UINT8)'9'
+#define ECU              (UINT8)'0',(UINT8)'8'
+#define SwType           (UINT8)'1'
+#define TargetVer        (UINT8)'0',(UINT8)'2'
+#define InternalVer      (UINT8)'2'
 
 /*****************************************************************************
 ** Constant Macro Definition
 *****************************************************************************/
-
+#define DID_F194_SoftRefNum              VerStatus,CarModePlate,ECU,SwType,TargetVer,InternalVer
 
 /*****************************************************************************
 ** System Macro Definition
@@ -51,6 +59,7 @@
 ** Variables
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Constants
 *****************************************************************************/
@@ -58,16 +67,9 @@
 
 /*****************************************************************************
 ** Function prototypeseb
-*****************************************************************************/	
-void Ecu_Flash_Init(void);
-void Ecu_Flash_ErasePage(UINT32 u32_addr);
-BOOL ApiFlashErasePage(UINT32 first_addr, UINT32 last_addr);
-BOOL Ecu_Flash_WriteByteToCode(UINT32 u32_addr,UINT8 u8_buff);
-BOOL Ecu_Flash_WriteHalfWordToCode(UINT32 u32_addr,UINT16 u16_flash_buff);
-BOOL Ecu_Flash_WriteWordToCode(UINT32 u32_addr,UINT32 u32_flash_buff);
-BOOL Ecu_Flash_WriteBlockDataToCode(UINT32 u32_addr,UINT8* p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadBlockDataFromCode(UINT32 u32_addr, UINT8 *p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_len,BOOL b_cmd);
+*****************************************************************************/
+
+
 /*****************************************************************************
 ** other
 *****************************************************************************/
@@ -75,7 +77,7 @@ BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_l
 
 /****************************************************************************/
 
-#endif	//__ECU_FLASH_H__
+#endif	//__MEM_SW_VER_H__
 
 /*****************************************************************************
 ** End File

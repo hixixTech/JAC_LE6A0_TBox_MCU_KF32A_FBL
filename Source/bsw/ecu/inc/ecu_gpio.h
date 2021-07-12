@@ -96,6 +96,21 @@ typedef enum
 #endif
 	GPIO_NUM_MAX				//dont't delete this line
 }GPIO_Name_E;
+
+typedef enum
+{
+	WAKEUP_ACC_SOURCE  = 0,
+	WAKEUP_SOS_SOURCE,
+	WAKEUP_4G_SOURCE,
+	WAKEUP_BLE_SOURCE,
+	WAKEUP_SRS_SOURCE,
+	WAKEUP_RTC_SOURCE,
+	WAKEUP_LIS_SOURCE,
+	WALEUP_CAN0_RX_SOURCE,
+	WAKEUP_CAM1_RX_SOURCE,
+	WAKEUP_CAM2_RX_SOURCE,
+	WAKEUP_MAX_SOURCE
+}WakeUp_Name_E;
 /*****************************************************************************
 ** Constant Macro Definition
 *****************************************************************************/
@@ -132,12 +147,14 @@ typedef enum
 /*****************************************************************************
 ** Function prototypeseb
 *****************************************************************************/
-void Ecu_Gpio_Init(void);
+void ApiGpioInit(void);
+void ApiGpioReset(void);
 UINT8 ApiGpioInputRead(GPIO_Name_E e_idx);
 UINT8 ApiGpioOutputRead(GPIO_Name_E e_idx);
-void ApiGpioOutputLow(GPIO_Name_E e_idx);
-void ApiGpioOutputHigh(GPIO_Name_E e_idx);
-void ApiGpioOutputTurn(GPIO_Name_E e_idx);
+INT32 ApiGpioOutputLow(GPIO_Name_E e_idx);
+INT32 ApiGpioOutputHigh(GPIO_Name_E e_idx);
+INT32 ApiGpioOutputTurn(GPIO_Name_E e_idx);
+void ApiGpioSetWakeupSource(UINT32 u32_wakeup_source);
 /*****************************************************************************
 ** other
 *****************************************************************************/

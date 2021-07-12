@@ -19,7 +19,7 @@
 #include "mem_ee_driver.h"
 #include "ecu_flash.h"
 #include "ecu_misc.h"
-//#include "FreeRTOS.h"
+#include "FreeRTOS.h"
 #include "os_log.h"
 /*****************************************************************************
 ** #define
@@ -27,7 +27,7 @@
 #define EEPROM_BASIC_ADDR       ((UINT32)(0x00073000))                  //EE 起始地址
 #define EEPROM_PAGE_SIZE        (0x400)                                 //页大小
 #define EEPROM_PAGE_NUM         (25u)                                   //页数量
-#define EEPRON_MAX_SIZE         (EEPROM_PAGE_SIZE * EEPROM_PAGE_NUM)    //EE空间大小
+#define EEPRON_MAX_SIZE         (EEPROM_PAGE_SIZE * EEPROM_PAGE_NUM)    //EE空间大小   
 
 #define EEPROM_WRITE_BYTE_MAX   (1024)
 
@@ -235,7 +235,7 @@ void Mem_EED_PageAddrInit(void)
 
         (void)Ecu_Flash_ReadWriteNumBlockData(u32_addr,s_u8_head_block,EEPROM_BLOCK_SIZE,FALSE);
 
-        (void)Ecu_Misc_CompareByte(s_u8_head_block,0xFF,EEPROM_BLOCK_SIZE);
+        (void)ApiMiscCompare(s_u8_head_block,0xFF,EEPROM_BLOCK_SIZE);
         
         if(s_u8_head_block[0] < s_st_pagenwm.u8_runpage_num)
         {
@@ -538,7 +538,7 @@ static BOOL Mem_EED_GetEraseFlag(UINT32 u32_id,UINT16 u16_len,UINT16 u16_offset,
 
     if(TRUE == Mem_EED_Read(u32_id,s_u8_page_buff,u16_len,u16_offset))
     {
-        if(TRUE == Ecu_Misc_CompareByte(s_u8_page_buff,0xFF,u16_len))
+        if(TRUE == ApiMiscCompare(s_u8_page_buff,0xFF,u16_len))
         {
             *p_flag = FALSE;
         }

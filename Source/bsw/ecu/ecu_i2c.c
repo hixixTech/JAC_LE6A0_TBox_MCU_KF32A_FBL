@@ -230,6 +230,19 @@ void ApiI2cInit(void)
 }
 /****************************************************************************/
 /**
+ * Function Name: ApiI2cIntDisable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiI2cIntDisable(void)
+{
+	INT_Interrupt_Enable(INT_I2C2,FALSE);
+}
+/****************************************************************************/
+/**
  * Function Name: ApiI2cSendByte
  * Description: 写入1个字节
  *

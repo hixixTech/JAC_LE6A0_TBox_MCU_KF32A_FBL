@@ -63,7 +63,7 @@ void bsw_init(void)
 {
 
     //ecu part
-    Ecu_Gpio_Init();
+    ApiGpioInit();
 
 	ApiUsartDebugInit();
 	ApiUsartBleInit();
@@ -71,33 +71,38 @@ void bsw_init(void)
 	
 	ApiI2cInit();
 	ApiAdc0Init();
+	ApiSpi3Init();
 
 	ApiCan0Init();
 	ApiCan1Init();
 	ApiCan2Init();
+	ApiSoftWdtInit();
 
-	ApiDmaMpuRxInit(ApiGetRegAddrFormMpuRx(),SppGetMpuBuffAddr());
-	
+	ApiGeneralTime0Init();
+	ApiGeneralTime1Init();
+	ApiGeneralTime2Init();
+	ApiGeneralTime3Init();
+	ApiGeneralTime4Init();
+
+	ApiDmaMpuRxInit(ApiSpi3GetRxBuffAddr(),SppGetMpuBuffAddr());
     //srv part
 	Mem_EE_Init();
 
-	ApiGpioOutputLow(GPIO_CAN0_STB);
-	ApiGpioOutputLow(GPIO_CAN1_STB);
-	ApiGpioOutputLow(GPIO_CAN2_STB);
-	ApiGpioOutputHigh(GPIO_MCUSW_EN);
-    ApiGpioOutputHigh(GPIO_NMBAT_CHRG);
-    ApiGpioOutputHigh(GPIO_BAT_DET_CTL);
-    ApiGpioOutputHigh(GPIO_AUX_BOX_MUTE);
-    ApiGpioOutputHigh(GPIO_SPK_BOX_MUTE);
-    // ApiGpioOutputHigh(GPIO_SOSLED_CTL);
-    ApiGpioOutputHigh(GPIO_CODEC_EN);
-    ApiGpioOutputHigh(GPIO_4G_VBUS_CNTL);
-    ApiGpioOutputHigh(GPIO_GSENSOR_EN);
-    ApiGpioOutputHigh(GPIO_DIV8_EN);
-    ApiGpioOutputHigh(GPIO_MIC_EN);
-	ApiGpioOutputHigh(GPIO_PWR_CTL_4G);
-	
-
+	(void)ApiGpioOutputLow(GPIO_CAN0_STB);
+	(void)ApiGpioOutputLow(GPIO_CAN1_STB);
+	(void)ApiGpioOutputLow(GPIO_CAN2_STB);
+	(void)ApiGpioOutputHigh(GPIO_MCUSW_EN);
+    (void)ApiGpioOutputHigh(GPIO_NMBAT_CHRG);
+    (void)ApiGpioOutputHigh(GPIO_BAT_DET_CTL);
+    (void)ApiGpioOutputHigh(GPIO_AUX_BOX_MUTE);
+    (void)ApiGpioOutputHigh(GPIO_SPK_BOX_MUTE);
+    (void)ApiGpioOutputHigh(GPIO_SOSLED_CTL);
+    (void)ApiGpioOutputHigh(GPIO_CODEC_EN);
+    (void)ApiGpioOutputHigh(GPIO_4G_VBUS_CNTL);
+    (void)ApiGpioOutputHigh(GPIO_GSENSOR_EN);
+    (void)ApiGpioOutputHigh(GPIO_DIV8_EN);
+    (void)ApiGpioOutputHigh(GPIO_MIC_EN);
+	(void)ApiGpioOutputHigh(GPIO_PWR_CTL_4G);
 }
 /*****************************************************************************
 

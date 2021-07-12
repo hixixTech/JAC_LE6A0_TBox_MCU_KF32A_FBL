@@ -831,6 +831,9 @@
 #define EEPID_RVSREQUESTID              0x0514 /* (10)存储远程车控TBOXRequestID*/
 #define EEPID_RVSREQUESTID_LEN          2*EE_WR_STEPS 
 
+/********0x0800~0x0810***********/
+#define EEPID_WAKEUPSOURCE              0x0800 /* (8) 唤醒源*/
+#define EEPID_WAKEUPSOURCE_LEN          1*EE_WR_STEPS 
 /*****************************************************************************
 ** System Macro Definition
 *****************************************************************************/

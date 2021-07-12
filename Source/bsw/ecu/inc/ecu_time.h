@@ -1,9 +1,9 @@
 /******************************************************************************
  * (C) Copyright 2020 Anhui Domain Compute Co.Ltd
- * FILE NAME:    ecu_flash.h
+ * FILE NAME:    ecu_time.h
  * DESCRIPTION:
  * 
- * DATE BEGUN:   2021/05/20
+ * DATE BEGUN:   2021/07/08
  * BY:           feifei.xu
  * PRODUCT NAME:
  * APPLICATION:
@@ -12,16 +12,19 @@
  *****************************************************************************
  */
 
-#ifndef __ECU_FLASH_H__
-#define __ECU_FLASH_H__
+#ifndef __ECU_TIME_H__
+#define __ECU_TIME_H__
 
 /*****************************************************************************
 **#include 
 *****************************************************************************/
 #include "type.h"
+
+
 /*****************************************************************************
 **  typedef
 *****************************************************************************/
+typedef void (*ECU_IOD_TIMER_CALLBACK)(void);
 
 /*****************************************************************************
 ** Constant Macro Definition
@@ -42,6 +45,7 @@
 ** Config Macro Definition
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Task Macro Definition
 *****************************************************************************/
@@ -51,6 +55,7 @@
 ** Variables
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Constants
 *****************************************************************************/
@@ -58,16 +63,13 @@
 
 /*****************************************************************************
 ** Function prototypeseb
-*****************************************************************************/	
-void Ecu_Flash_Init(void);
-void Ecu_Flash_ErasePage(UINT32 u32_addr);
-BOOL ApiFlashErasePage(UINT32 first_addr, UINT32 last_addr);
-BOOL Ecu_Flash_WriteByteToCode(UINT32 u32_addr,UINT8 u8_buff);
-BOOL Ecu_Flash_WriteHalfWordToCode(UINT32 u32_addr,UINT16 u16_flash_buff);
-BOOL Ecu_Flash_WriteWordToCode(UINT32 u32_addr,UINT32 u32_flash_buff);
-BOOL Ecu_Flash_WriteBlockDataToCode(UINT32 u32_addr,UINT8* p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadBlockDataFromCode(UINT32 u32_addr, UINT8 *p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_len,BOOL b_cmd);
+*****************************************************************************/
+void ApiGeneralTime0Init(void);
+void ApiGeneralTime1Init(void);
+void ApiGeneralTime2Init(void);
+void ApiGeneralTime3Init(void);
+void ApiGeneralTime4Init(void);
+INT32 ApiTimerRegistTimer(uint32_t u32t_Prd,ECU_IOD_TIMER_CALLBACK fp_callback);
 /*****************************************************************************
 ** other
 *****************************************************************************/
@@ -75,7 +77,7 @@ BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_l
 
 /****************************************************************************/
 
-#endif	//__ECU_FLASH_H__
+#endif	//__ECU_TIME_H__
 
 /*****************************************************************************
 ** End File

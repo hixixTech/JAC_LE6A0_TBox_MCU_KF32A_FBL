@@ -63,7 +63,7 @@
 /*****************************************************************************
 ** Function prototypeseb
 *****************************************************************************/
-BOOL Ecu_Misc_CompareByte(const UINT8* u8_src,const UINT8 u8_data,UINT16 u16_len);
+BOOL ApiMiscCompare(const UINT8* u8_src,const UINT8 u8_data,UINT16 u16_len);
 void delayus(UINT32 u32_us);
 /*****************************************************************************
 ** other

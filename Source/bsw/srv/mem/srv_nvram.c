@@ -59,9 +59,9 @@
  * Return:  none
  * Author:  2021/06/22, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiNvramReadSyncInd(UINT32 u32_id, UINT16 u16_len,UINT16 u16_Offset,UINT8* p_u8_buff) 
+BOOL ApiNvramReadSyncInd(UINT32 u32_id, UINT16 u16_len,UINT8* p_u8_buff) 
 {
-    return Mem_EE_Read(u32_id,p_u8_buff,u16_Offset,u16_len);
+    return Mem_EE_Read(u32_id,p_u8_buff,u16_len);
 }
 
 /****************************************************************************/

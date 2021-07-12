@@ -1,9 +1,9 @@
 /******************************************************************************
  * (C) Copyright 2020 Anhui Domain Compute Co.Ltd
- * FILE NAME:    ecu_flash.h
+ * FILE NAME:    mem_flash_did.h
  * DESCRIPTION:
  * 
- * DATE BEGUN:   2021/05/20
+ * DATE BEGUN:   2021/07/08
  * BY:           feifei.xu
  * PRODUCT NAME:
  * APPLICATION:
@@ -12,21 +12,40 @@
  *****************************************************************************
  */
 
-#ifndef __ECU_FLASH_H__
-#define __ECU_FLASH_H__
+#ifndef __MEM_FLASH_DID_H__
+#define __MEM_FLASH_DID_H__
 
 /*****************************************************************************
 **#include 
 *****************************************************************************/
 #include "type.h"
+
+
 /*****************************************************************************
 **  typedef
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Constant Macro Definition
 *****************************************************************************/
+#define DID_VALUE_F187_ECUPartNumber     0x43,0x00,0x20,0x48,0x14,0x00 /*ECU零件号*/
+#define DID_VALUE_F191_ECUHardwareNumber 0x10,0x71,0x86,0x54,0x01 /*硬件号*/
+#define DID_VALUE_F1A0_SoftPartNum       0x10,0x71,0x86,0x50,0x01 /*软件号*/
+#define DID_VALUE_F120_NCFPartNumber     0x10,0x40,0x76,0x65,0x04,0x1a,0x2b,0x3c,0x4d,0x5e,0x6f,0x00,0x00,0x00,0xff,0xff /*网络软件号*/
+#define DID_VALUE_F121_NCFPartNumber     0x10,0x57,0x31,0x10,0x02 /*网络软件号*/
+#define DID_VALUE_F1A2_NCFRefNum         0x4E,0x00,0x00,0x00,0x01,0x00,0x00,0x00 /*网络参考号*/
+#define DID_VALUE_F1A1_CaliPartNum       0xFF,0xFF,0xFF,0xFF,0xFF /*标定数据号*/
+#define DID_VALUE_F1AA_ECUPrgmPrcFileNo  0x10,0x46,0x57,0x22,0x01 /*F1AA电控单元刷新流程文件号*/
+#define DID_VALUE_F1A9_ECUDeployFileNo   0xFF,0xFF,0xFF,0xFF,0xFF /*F1A9电控单元配置文件号*/
+#define DID_VALUE_F198_CfgTrcField       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 /*F198配置跟踪域*/
 
+#define EPS_SYS_SELECT                   (EPS_SYS_MKT)
+#define DID_F192_HardRefNumber           'T','B','O','X','A','S','2','8','B','0'
+#define DID_F1A5_ECUIndexInfo            0x00,0x00,0x00
+
+/*系统供应商邓码*/
+#define DID_VALUE_F18A_SysSupplierID     0x04,0x21,0x29,0x12,0x91  
 
 /*****************************************************************************
 ** System Macro Definition
@@ -42,6 +61,7 @@
 ** Config Macro Definition
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Task Macro Definition
 *****************************************************************************/
@@ -51,6 +71,7 @@
 ** Variables
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Constants
 *****************************************************************************/
@@ -58,16 +79,9 @@
 
 /*****************************************************************************
 ** Function prototypeseb
-*****************************************************************************/	
-void Ecu_Flash_Init(void);
-void Ecu_Flash_ErasePage(UINT32 u32_addr);
-BOOL ApiFlashErasePage(UINT32 first_addr, UINT32 last_addr);
-BOOL Ecu_Flash_WriteByteToCode(UINT32 u32_addr,UINT8 u8_buff);
-BOOL Ecu_Flash_WriteHalfWordToCode(UINT32 u32_addr,UINT16 u16_flash_buff);
-BOOL Ecu_Flash_WriteWordToCode(UINT32 u32_addr,UINT32 u32_flash_buff);
-BOOL Ecu_Flash_WriteBlockDataToCode(UINT32 u32_addr,UINT8* p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadBlockDataFromCode(UINT32 u32_addr, UINT8 *p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_len,BOOL b_cmd);
+*****************************************************************************/
+
+
 /*****************************************************************************
 ** other
 *****************************************************************************/
@@ -75,7 +89,7 @@ BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_l
 
 /****************************************************************************/
 
-#endif	//__ECU_FLASH_H__
+#endif	//__MEM_FLASH_DID_H__
 
 /*****************************************************************************
 ** End File

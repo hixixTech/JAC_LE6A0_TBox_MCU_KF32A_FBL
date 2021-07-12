@@ -62,11 +62,11 @@ DMA_CFG_S g_dma_debug_rx_cfg =
 DMA_CFG_S g_dma_mpu_rx_cfg = 
 {
 	DMA0_SFR,
-	DMA_CHANNEL_4,					//DMA通道选择:通道2
+	DMA_CHANNEL_7,					//DMA通道选择:通道7
 	DMA_PERIPHERAL_TO_MEMORY,		//DMA传输方向：外设到内存
 	DMA_DATA_WIDTH_8_BITS,			//数据位宽：8位宽
 	DMA_CHANNEL_LOWER,				//DMA通道优先级：低优先级
-	2048,								//传输数据个数: 5
+	2048,							//传输数据个数: 2048
 	FALSE,							//外设地址增量模式使能: FALSE
 	TRUE,							//储器地址增量模式使能: TRUE
 	DMA_TRANSFER_BYTE,				//数据字节输模式
@@ -108,6 +108,7 @@ static void Ecu_Dma_Comfigure(DMA_CFG_S* p_dma_cfg,UINT32 u32_per_addr,UINT32 u3
 	/* 配置DMA功能函数 */
 	DMA_Configuration (p_dma_cfg->DMAx, &DMA_InitStructure);
 	/* 使能通道0DMA */
+	DMA_Error_Transfer_INT_Enable(p_dma_cfg->DMAx, p_dma_cfg->u8_Channal,TRUE);
 	DMA_Channel_Enable (p_dma_cfg->DMAx, p_dma_cfg->u8_Channal, TRUE);
 	INT_Interrupt_Enable(INT_DMA0,TRUE);
 	INT_All_Enable(TRUE);
@@ -125,7 +126,19 @@ void ApiDmaMpuRxInit(UINT32 u32_per_addr,UINT32 u32_mem_addr)
 {
 	Ecu_Dma_Comfigure(&g_dma_mpu_rx_cfg,u32_per_addr,u32_mem_addr);
 }
-
+/****************************************************************************/
+/**
+ * Function Name: ApiDma0IntDisable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiDma0IntDisable(void)
+{
+	INT_Interrupt_Enable(INT_DMA0,FALSE);
+}
 /****************************************************************************/
 /**
  * Function Name: ApiDmaMpuTransferNum
@@ -159,9 +172,9 @@ UINT16 ApiDmaMpuTransferNum(void)
  ****************************************************************************/
 void __attribute__((interrupt))_DMA0_exception(void)
 {
-	if(TRUE == DMA_Get_Finish_Transfer_INT_Flag(DMA0_SFR,DMA_CHANNEL_2))
+	if(TRUE == DMA_Get_Error_Transfer_INT_Flag(g_dma_mpu_rx_cfg.DMAx,g_dma_mpu_rx_cfg.u8_Channal))
 	{
-		// DMA_Clear_INT_Flag(g_dma_debug_rx_cfg.DMAx,g_dma_debug_rx_cfg.u8_Channal,DMA_INT_FINISH_TRANSFER);
+		DMA_Clear_INT_Flag(g_dma_mpu_rx_cfg.DMAx,g_dma_mpu_rx_cfg.u8_Channal,DMA_INT_ERROR_TRANSFER);
 	}
 }
 /****************************************************************************/

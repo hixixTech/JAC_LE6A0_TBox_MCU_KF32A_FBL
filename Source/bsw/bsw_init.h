@@ -27,6 +27,8 @@
 #include "ecu_misc.h"
 #include "ecu_i2c.h"
 #include "ecu_dma.h"
+#include "ecu_wdg.h"
+#include "ecu_time.h"
 
 #include "spp_app.h"
 #include "spp_callout.h"

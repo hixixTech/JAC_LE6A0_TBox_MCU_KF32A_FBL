@@ -17,6 +17,8 @@
 *****************************************************************************/
 #include "system_init.h"
 #include "ecu_gpio.h"
+#include "ecu_pm.h"
+#include "srv_nvram.h"
 /*****************************************************************************
 ** #define
 *****************************************************************************/
@@ -61,17 +63,18 @@ typedef struct
 
 typedef struct
 {
-	GPIO_Name_E 		Name;
+	WakeUp_Name_E 		Name;
 	UINT32				EintNum;
 	FunctionalState		Enable;
 	FunctionalState		Rise;
 	FunctionalState		Fall;
 	UINT32 				Sourse;
-}EXIT_INT_S;
+	UINT32				Peripheral;
+}WakeUp_CFG_S;
 /*****************************************************************************
 ** global variable
 *****************************************************************************/
-const GPIO_CFG_S c_gpio_cfg[GPIO_NUM_MAX] = 
+static const GPIO_CFG_S s_c_st_gpio_cfg[GPIO_NUM_MAX] = 
 {	/*	Name				PORT			Pin				Mode			Speed			开漏控制	Pullup	PullDown	重映射*/																																			\
 /*1*/	{GPIO_CODEC_EN 		, GPIOD_SFR,	GPIO_Pin_Num_1	, GPIO_MODE_OUT	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
 /*2*/	{GPIO_ACC_DET		, GPIOD_SFR,	GPIO_Pin_Num_2	, GPIO_MODE_IN 	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	TRUE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
@@ -107,10 +110,10 @@ const GPIO_CFG_S c_gpio_cfg[GPIO_NUM_MAX] =
 /*32*/	{GPIO_MCU_SRS_IN	, GPIOB_SFR,	GPIO_Pin_Num_11	, GPIO_MODE_IN	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	TRUE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
 /*33*/	{GPIO_CAN2_STB		, GPIOB_SFR,	GPIO_Pin_Num_12	, GPIO_MODE_OUT	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF0_SYSTEM,	HIGH},	
 /*34*/	{GPIO_MIC_EN		, GPIOB_SFR,	GPIO_Pin_Num_13	, GPIO_MODE_OUT	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
-/*35*/	{GPIO_SPI3_MISO_3V3	, GPIOB_SFR,	GPIO_Pin_Num_14	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF5_USART2,	LOW},	
-/*36*/	{GPIO_SP13_MOSI_3V3	, GPIOB_SFR,	GPIO_Pin_Num_15	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF5_USART2,	LOW},	
-/*37*/	{GPIO_SPI3_CLK_3V3	, GPIOF_SFR,	GPIO_Pin_Num_0	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF7_SPI3,		LOW},	
-/*38*/	{GPIO_SPI3_CS_N_3V3	, GPIOF_SFR,	GPIO_Pin_Num_1	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF7_SPI3,		LOW},	
+/*35*/	{GPIO_SPI3_MISO_3V3	, GPIOB_SFR,	GPIO_Pin_Num_14	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, TRUE,  		FALSE, 	GPIO_RMP_AF7_SPI3,		LOW},	
+/*36*/	{GPIO_SP13_MOSI_3V3	, GPIOB_SFR,	GPIO_Pin_Num_15	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, TRUE,  		FALSE, 	GPIO_RMP_AF7_SPI3,		LOW},	
+/*37*/	{GPIO_SPI3_CLK_3V3	, GPIOF_SFR,	GPIO_Pin_Num_0	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, TRUE,  		FALSE, 	GPIO_RMP_AF7_SPI3,		LOW},	
+/*38*/	{GPIO_SPI3_CS_N_3V3	, GPIOF_SFR,	GPIO_Pin_Num_1	, GPIO_MODE_RMP	, GPIO_HIGH_SPEED, GPIO_POD_PP, TRUE,  		FALSE, 	GPIO_RMP_AF7_SPI3,		LOW},	
 /*39*/	{GPIO_SPI3_MPU_3V3	, GPIOF_SFR,	GPIO_Pin_Num_2	, GPIO_MODE_OUT	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
 /*40*/	{GPIO_SPI3_MCU_3V3	, GPIOF_SFR,	GPIO_Pin_Num_3	, GPIO_MODE_IN	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	TRUE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
 /*41*/	{GPIO_4G_WORKPWM_3V3, GPIOF_SFR,	GPIO_Pin_Num_7	, GPIO_MODE_IN	, GPIO_HIGH_SPEED, GPIO_POD_PP, FALSE,  	FALSE, 	GPIO_RMP_AF0_SYSTEM,	LOW},	
@@ -142,28 +145,35 @@ const GPIO_CFG_S c_gpio_cfg[GPIO_NUM_MAX] =
 #endif
 };
 
-static const EXIT_INT_S s_c_st_exit_cfg[] = 
+//唤醒源
+static const WakeUp_CFG_S s_c_st_WakeUp_cfg[] = 
 {
-/*1*/	{GPIO_RTC,	INT_EXTERNAL_INTERRUPT_9,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PC}
+/*0*/	{WAKEUP_ACC_SOURCE,		INT_EXTERNAL_INTERRUPT_2,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PD,	INT_EINT2},
+/*1*/	{WAKEUP_SOS_SOURCE,		INT_EXTERNAL_INTERRUPT_4,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PD,	INT_EINT4},
+/*2*/	{WAKEUP_4G_SOURCE,		INT_EXTERNAL_INTERRUPT_6,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PD,	INT_EINT9TO5},
+/*3*/	{WAKEUP_BLE_SOURCE,		INT_EXTERNAL_INTERRUPT_7,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PD,	INT_EINT9TO5},
+/*4*/	{WAKEUP_SRS_SOURCE,		INT_EXTERNAL_INTERRUPT_11,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PB,	INT_EINT15TO10},
+/*5*/	{WAKEUP_RTC_SOURCE,		INT_EXTERNAL_INTERRUPT_9,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PC,	INT_EINT9TO5},
+/*6*/	{WAKEUP_LIS_SOURCE,		INT_EXTERNAL_INTERRUPT_10,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PC,	INT_EINT15TO10},
+/*7*/	{WALEUP_CAN0_RX_SOURCE,	INT_EXTERNAL_INTERRUPT_5,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PG,	INT_EINT9TO5},
+/*8*/	{WAKEUP_CAM1_RX_SOURCE,	INT_EXTERNAL_INTERRUPT_3,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PC,	INT_EINT3},
+/*9*/	{WAKEUP_CAM2_RX_SOURCE,	INT_EXTERNAL_INTERRUPT_6,	TRUE,	FALSE,	TRUE,	INT_EXTERNAL_SOURCE_PG,	INT_EINT9TO5}
 };
-
 /*****************************************************************************
 ** static variables
 *****************************************************************************/
-
 
 /*****************************************************************************
 ** static constants
 *****************************************************************************/
 
-
 /*****************************************************************************
 ** static function prototypes
 *****************************************************************************/
 static Ecu_Gpio_PortReset(void);
-static Ecu_Gpio_PortClkEnable(void);
-
-
+static void Ecu_Gpio_PortClkEnable(void);
+static void Ecu_Gpio_Configure(GPIO_CFG_S* p_gpio_cfg);
+static void Ecu_Gpio_WakeUpConfigure(WakeUp_CFG_S* p_wakeup_cfg);
 /*****************************************************************************
 ** function prototypes
 *****************************************************************************/
@@ -177,17 +187,12 @@ static Ecu_Gpio_PortClkEnable(void);
  * Return:  none
  * Author:  2021/05/18, feifei.xu create this function
  ****************************************************************************/
-void Ecu_Gpio_Init(void)
+static void Ecu_Gpio_Configure(GPIO_CFG_S* p_gpio_cfg)
 {
 	UINT16 u16_index = 0;
 	UINT16 u16_pin_mask = 0;
 
-	GPIO_CFG_S* p_gpio_cfg = c_gpio_cfg;
-	EXIT_INT_S* p_exit_cfg = s_c_st_exit_cfg;
-
-	EINT_InitTypeDef EXIT_InitStructure;
-
-	Ecu_Gpio_PortReset();
+	ApiGpioReset();
 	Ecu_Gpio_PortClkEnable();
 
 	for(u16_index = 0;u16_index < GPIO_NUM_MAX; u16_index++)
@@ -220,18 +225,65 @@ void Ecu_Gpio_Init(void)
 		p_gpio_cfg++;
 	}
 
-	// for(u16_index = 0; u16_index < (sizeof(s_c_st_exit_cfg)/sizeof(EXIT_INT_S)); u16_index++)
-	// {
-	// 	EXIT_InitStructure.m_Line = p_exit_cfg->EintNum;
-	// 	EXIT_InitStructure.m_Mask = p_exit_cfg->Enable;
-	// 	EXIT_InitStructure.m_Rise = p_exit_cfg->Rise;
-	// 	EXIT_InitStructure.m_Fall = p_exit_cfg->Fall;
-	// 	EXIT_InitStructure.m_Source = p_exit_cfg->Sourse;
-	// 	INT_External_Configuration(&EXIT_InitStructure);
-	// 	INT_External_Source_Enable(p_exit_cfg->EintNum,p_exit_cfg->Sourse);
-	// }
-	// INT_All_Enable (TRUE);      //使能总中断
-	
+}
+/****************************************************************************/
+/**
+ * Function Name: Ecu_Gpio_SetWakeUp
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/06, feifei.xu create this function
+ ****************************************************************************/
+static void Ecu_Gpio_WakeUpConfigure(WakeUp_CFG_S* p_wakeup_cfg)
+{
+	EINT_InitTypeDef EXIT_InitStructure;
+
+	EXIT_InitStructure.m_Line = p_wakeup_cfg->EintNum;
+	EXIT_InitStructure.m_Mask = p_wakeup_cfg->Enable;
+	EXIT_InitStructure.m_Rise = p_wakeup_cfg->Rise;
+	EXIT_InitStructure.m_Fall = p_wakeup_cfg->Fall;
+	EXIT_InitStructure.m_Source = p_wakeup_cfg->Sourse;
+	INT_External_Configuration(&EXIT_InitStructure);
+	INT_External_Clear_Flag(p_wakeup_cfg->EintNum);
+	INT_Interrupt_Priority_Config(p_wakeup_cfg->Peripheral,4,1);
+	INT_Interrupt_Enable(p_wakeup_cfg->Peripheral,TRUE);
+	INT_Clear_Interrupt_Flag(p_wakeup_cfg->Peripheral);
+	INT_All_Enable(TRUE);
+}
+
+/****************************************************************************/
+/**
+ * Function Name: Ecu_Gpio_PortClkEnable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/05/18, feifei.xu create this function
+ ****************************************************************************/
+static void Ecu_Gpio_PortClkEnable(void)
+{
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_A_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_B_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_C_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_D_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_E_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_F_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_G_CLK,TRUE);
+	PCLK_CTL0_Peripheral_Clock_Enable(PORT_H_CLK,TRUE);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiGpioInit
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/06, feifei.xu create this function
+ ****************************************************************************/
+void ApiGpioInit(void)
+{
+	Ecu_Gpio_Configure(s_c_st_gpio_cfg);
 }
 /****************************************************************************/
 /**
@@ -242,7 +294,7 @@ void Ecu_Gpio_Init(void)
  * Return:  none
  * Author:  2021/05/18, feifei.xu create this function
  ****************************************************************************/
-static Ecu_Gpio_PortReset(void)
+void ApiGpioReset(void)
 {
 	GPIO_Reset(PROT_A);
 	GPIO_Reset(PROT_B);
@@ -255,23 +307,19 @@ static Ecu_Gpio_PortReset(void)
 }
 /****************************************************************************/
 /**
- * Function Name: Ecu_Gpio_PortClkEnable
+ * Function Name: ApiGpioSetWakeupSource
  * Description: none
  *
  * Param:   none
  * Return:  none
- * Author:  2021/05/18, feifei.xu create this function
+ * Author:  2021/07/06, feifei.xu create this function
  ****************************************************************************/
-static Ecu_Gpio_PortClkEnable(void)
+void ApiGpioSetWakeupSource(UINT32 u32_wakeup_source)
 {
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_A_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_B_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_C_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_D_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_E_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_F_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_G_CLK,TRUE);
-	PCLK_CTL0_Peripheral_Clock_Enable(PORT_H_CLK,TRUE);
+	if(u32_wakeup_source < WAKEUP_MAX_SOURCE)
+	{
+		Ecu_Gpio_WakeUpConfigure(&s_c_st_WakeUp_cfg[u32_wakeup_source]);
+	}
 }
 /****************************************************************************/
 /**
@@ -286,8 +334,10 @@ UINT8 ApiGpioInputRead(GPIO_Name_E e_idx)
 {
 	if(e_idx < GPIO_NUM_MAX)
 	{
-		return (UINT8)GPIO_Read_Input_Data_Bit(c_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(c_gpio_cfg[e_idx].Pin));
+		return (UINT8)GPIO_Read_Input_Data_Bit(s_c_st_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(s_c_st_gpio_cfg[e_idx].Pin));
 	}
+
+	return 0;
 }
 /****************************************************************************/
 /**
@@ -302,8 +352,10 @@ UINT8 ApiGpioOutputRead(GPIO_Name_E e_idx)
 {
 	if(e_idx < GPIO_NUM_MAX)
 	{
-		return (UINT8)GPIO_Read_Output_Data_Bit(c_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(c_gpio_cfg[e_idx].Pin));
+		return (UINT8)GPIO_Read_Output_Data_Bit(s_c_st_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(s_c_st_gpio_cfg[e_idx].Pin));
 	}
+
+	return 0;
 }
 /****************************************************************************/
 /**
@@ -314,12 +366,18 @@ UINT8 ApiGpioOutputRead(GPIO_Name_E e_idx)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-void ApiGpioOutputLow(GPIO_Name_E e_idx)
+INT32 ApiGpioOutputLow(GPIO_Name_E e_idx)
 {
 	if(e_idx < GPIO_NUM_MAX)
 	{
-		GPIO_Set_Output_Data_Bits(c_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(c_gpio_cfg[e_idx].Pin),Bit_RESET);
+		GPIO_Set_Output_Data_Bits(s_c_st_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(s_c_st_gpio_cfg[e_idx].Pin),Bit_RESET);
 	}
+	else
+	{
+		return ERROR;
+	}
+
+	return OK;
 }
 /****************************************************************************/
 /**
@@ -330,12 +388,18 @@ void ApiGpioOutputLow(GPIO_Name_E e_idx)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-void ApiGpioOutputHigh(GPIO_Name_E e_idx)
+INT32 ApiGpioOutputHigh(GPIO_Name_E e_idx)
 {
 	if(e_idx < GPIO_NUM_MAX)
 	{
-		GPIO_Set_Output_Data_Bits(c_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(c_gpio_cfg[e_idx].Pin),Bit_SET);
+		GPIO_Set_Output_Data_Bits(s_c_st_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(s_c_st_gpio_cfg[e_idx].Pin),Bit_SET);
 	}
+	else
+	{
+		return ERROR;
+	}
+
+	return OK;
 }
 /****************************************************************************/
 /**
@@ -346,104 +410,20 @@ void ApiGpioOutputHigh(GPIO_Name_E e_idx)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-void ApiGpioOutputTurn(GPIO_Name_E e_idx)
+INT32 ApiGpioOutputTurn(GPIO_Name_E e_idx)
 {
 	if(e_idx < GPIO_NUM_MAX)
 	{
-		GPIO_Toggle_Output_Data_Config(c_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(c_gpio_cfg[e_idx].Pin));
+		GPIO_Toggle_Output_Data_Config(s_c_st_gpio_cfg[e_idx].GPIOx,GPIO_GetMask(s_c_st_gpio_cfg[e_idx].Pin));
 	}
-}
-/****************************************************************************/
-/**
- * Function Name: _EINT0_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT0_exception(void)
-{
+	else
+	{
+		return ERROR;
+	}
 
+	return OK;
 }
-/****************************************************************************/
-/**
- * Function Name: _EINT1_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT1_exception(void)
-{
-	
-}
-/****************************************************************************/
-/**
- * Function Name: _EINT2_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT2_exception(void)
-{
-	
-}
-/****************************************************************************/
-/**
- * Function Name: _EINT3_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT3_exception(void)
-{
-	
-}
-/****************************************************************************/
-/**
- * Function Name: _EINT4_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT4_exception(void)
-{
 
-}
-/****************************************************************************/
-/**
- * Function Name: _EINT9TO5_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT9TO5_exception(void)
-{
-
-}
-/****************************************************************************/
-/**
- * Function Name: _EINT15TO10_exception
- * Description: none
- *
- * Param:   none
- * Return:  none
- * Author:  2021/06/25, feifei.xu create this function
- ****************************************************************************/
-void __attribute__((interrupt))_EINT15TO10_exception(void)
-{
-
-}
 /*****************************************************************************
 ** End File
 *****************************************************************************/

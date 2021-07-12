@@ -277,7 +277,7 @@ typedef struct
     UINT8 u8_SecretKeyData[EEPID_SECRETKEY_LEN];
     UINT8 u8_SecretKeyBackupData[EEPID_SECRETKEYBACKUP_LEN];
     UINT8 u8_RVSRequestIDData[EEPID_RVSREQUESTID_LEN];
-
+    UINT8 u8_WakeUpSourceData[EEPID_WAKEUPSOURCE_LEN];
 }MemEeprom_Data; 
 
 /*****************************************************************************

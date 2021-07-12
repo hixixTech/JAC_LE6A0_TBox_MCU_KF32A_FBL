@@ -1,143 +1,272 @@
 #include "spp_com.h"
 #include "spp_type.h"
-//#include "lib_dias_public.h"
-#include "spi.h"
+#include "os_log.h"
+#include "spp_callout.h"
+
+
+static int s32InitStatus4G= ERROR;
+static int s32InitStatusMpu = ERROR;
+
 
 
 /******************************************************************************
-*  function name | DiasSppComOpen
-*  content       | ³õÊ¼»¯ spi ¶Ë¿Ú
-*  parameter     | eConnectType Á¬½ÓÀàÐÍ
-*  return        | DiasErrorCode_e
+*  function name | SppComOpen
+*  content       | ï¿½ï¿½Ê¼ï¿½ï¿½ spi ï¿½Ë¿ï¿½
+*  parameter     | eConnectType ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*  return        | SPPErrorCode_e
 *  notice        | 
 ******************************************************************************/
-DiasErrorCode_e DiasSppComOpen(DiasSppConnectType_e eConnectType)
+SPPErrorCode_e SppComOpen(SppConnectType_e eConnectType)
 {
-	INT32 iRet=0;	
-	
-	iRet=SPI_Open(eConnectType);
-	if(OK==iRet)
+    SPPErrorCode_e eRet = SPP_FAILURE;
+
+	if(SPP_CONNECT_TYPE_MCU_4G==eConnectType)
 	{
-		//DiasDcpdLog(LOG_INFO,"open spi dev success.");
-		return DIAS_SUCCESS;
+		if(ERROR==s32InitStatus4G)
+		{
+            (VOID)SppHalInit();
+	        eRet = SPP_SUCCESS;
+			s32InitStatus4G=OK;
+		}
+		else
+		{
+            eRet = SPP_SUCCESS;
+		}
 	}
-	
-	DiasDcpdLog(LOG_ERR,"can't open spi dev.");
-	return DIAS_FAILURE;
+	else if(SPP_CONNECT_TYPE_MCU_MPU==eConnectType)
+	{
+		if(ERROR==s32InitStatusMpu)
+		{
+
+			s32InitStatusMpu=ERROR;
+		}
+		else
+		{
+            eRet = SPP_SUCCESS;
+		}
+	}
+    else
+    {
+        
+    }
+	return eRet;
+
 	
 }
 
+
 /******************************************************************************
-*  function name | DiasSppComSend
-*  content       | spi·¢ËÍ×Ö·û´®
-*  parameter     | pu8SendData : ´ý·¢ËÍµÄ×Ö·û´® eConnectType Á¬½ÓÀàÐÍ
-                   u32len: ·¢ËÍ³¤¶È
-*  return        | DiasErrorCode_e
+*  function name | SppComSend
+*  content       | spiï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½
+*  parameter     | pu8SendData : ï¿½ï¿½ï¿½Íµï¿½ï¿½Ö·ï¿½ eConnectType ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                   u32len: ï¿½ï¿½ï¿½Í³ï¿½ï¿½ï¿½
+*  return        | SPPErrorCode_e
 *  notice        | 
 ******************************************************************************/
-DiasErrorCode_e DiasSppComSend(DiasSppConnectType_e eConnectType,UINT8 *pu8SendData, UINT32 u32len)
+SPPErrorCode_e SppComSend(SppConnectType_e eConnectType,UINT8 *pu8SendData, UINT32 u32len)
 {
-	INT32 iRet=0;
-	static CHAR acDataLog[DIAS_SPP_PACKET_LEN_MAX*3 + 1] = {0};
-	UINT8 u8Idx = 0;
+	SPPErrorCode_e eRet=SPP_FAILURE;
 
 	if(NULL==pu8SendData)
 	{
-		DiasDcpdLog(LOG_ERR,"DiasSppComSend wrong para.");
-		return DIAS_FAILURE;
+		return SPP_FAILURE;
 	}
 
-	iRet=SPI_Data_Send(eConnectType,pu8SendData, u32len);
-	if(DIAS_SUCCESS==iRet)
+	eRet=SppHalSendData(pu8SendData, u32len);
+	if(SPP_SUCCESS==eRet)
 	{
-	#if 0
-		(void)memset(acDataLog, 0, sizeof(acDataLog));
-		for(u8Idx=0; u8Idx<u32len; u8Idx++)
-		{
-			snprintf(acDataLog, sizeof(acDataLog), "%s %02x", acDataLog, pu8SendData[u8Idx]);
-		}
-		ApiLogPrintExt(1, _LOG_DEBUG, "eConnectType=%d, send: length=%d, data=%s.", eConnectType, u32len, acDataLog);
-	#endif
-		return DIAS_SUCCESS;
+	    //ApiLogPrint(_LOG_ENTRY, "UartSendOK\n");
+		return SPP_SUCCESS;
 	}
-	//ApiLogPrintExt(1, _LOG_DEBUG, "DiasSppComSend failure.");
-	return DIAS_FAILURE;
+	return SPP_FAILURE;
 }
 
+
 /******************************************************************************
-*  function name | DiasSppComRecv
-*  content       | spi¶ÁÈ¡×Ö·û´®
-*  parameter     | pu8RevDataBuf : ¶ÁÈ¡×Ö·û´®µÄ»º´æ eConnectType Á¬½ÓÀàÐÍ
-                   u32Buflen: ¶ÁÈ¡³¤¶È
-*  return        | 0 / ¶ÁÈ¡µÄ×Ö½ÚÊý
+*  function name | SppComRecv
+*  content       | spiï¿½ï¿½È¡ï¿½Ö·ï¿½
+*  parameter     | pu8RevDataBuf : ï¿½ï¿½È¡ï¿½Ö·ï¿½Ä»ï¿½ï¿½ï¿½ eConnectType ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                   u32Buflen: ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
+*  return        | 0 / ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½
 *  notice        | 
 ******************************************************************************/
-UINT32 DiasSppComRecv(DiasSppConnectType_e eConnectType,UINT8 *pu8RevDataBuf, UINT32 u32len)
+INT16 SppComRecv(SppConnectType_e eConnectType,UINT8 *pu8RevDataBuf, UINT32 u32len)
 {
 
-	INT32 iRet=0;
+	INT16 s16Ret=0;
 
 	if(NULL==pu8RevDataBuf)
 	{
-		DiasDcpdLog(LOG_ERR,"DiasSppComRecv wrong para.");
+	    return s16Ret;
 	}
 
-	iRet=SPI_Data_Recv(eConnectType,pu8RevDataBuf, u32len);
-	if(0 < iRet)
-	{		
-		DiasDcpdLog(LOG_DEBUG,"DiasSppComRecv success len=%d.",iRet);
-		return iRet;
+	if(SPP_CONNECT_TYPE_MCU_4G==eConnectType)
+	{
+	   s16Ret = SppHalRecvData(pu8RevDataBuf,u32len);
 	}
-	//DiasDcpdLog(LOG_ERR,"DiasSppComRecv fail.");
+	else if(SPP_CONNECT_TYPE_MCU_MPU==eConnectType)
+	{
+	}
+	else
+	{
+	}
+	if(0 < s16Ret)
+	{		
+		return s16Ret;
+	}
 	return 0;
 }
 
-/******************************************************************************
-*  function name | DiasSppComTransfer
-*  content       | spiÊÕ·¢×Ö·û´®
-*  parameter     | pu8SendData ·¢×Ö·û´®µÄ»º´æ eConnectType Á¬½ÓÀàÐÍ
-				   pu8RevDataBuf : ¶ÁÈ¡×Ö·û´®µÄ»º´æ
-                   u32Buflen: ÊÕ·¢³¤¶È
-*  return        | 0 / ¶ÁÈ¡µÄ×Ö½ÚÊý
-*  notice        | 
-******************************************************************************/
-DiasErrorCode_e DiasSppComTransfer(DiasSppConnectType_e eConnectType,UINT8 *pu8SendData,UINT8 *pu8RevDataBuf, UINT32 u32len)
-{
-	INT32 iRet=0;
-	
-	if((NULL==pu8RevDataBuf)||(NULL==pu8RevDataBuf))
-	{
-		DiasDcpdLog(LOG_ERR,"DiasSppComSend wrong para.");
-	}
-	
-	iRet=SPI_Data_Transfer(eConnectType, pu8SendData, pu8RevDataBuf, u32len);
-	
-	if(DIAS_SUCCESS==iRet)
-	{
-		DiasDcpdLog(LOG_DEBUG,"DiasSppComTransfer success.");
-		return DIAS_SUCCESS;
-	}
-	DiasDcpdLog(LOG_ERR,"DiasSppComTransfer fail.");
-	return DIAS_FAILURE;
-}
 
 /******************************************************************************
-*  function name | DiasSppComClose
-*  content       | ³õÊ¼»¯ spi ¶Ë¿Ú
-*  parameter     | eConnectType Á¬½ÓÀàÐÍ
-*  return        | DiasErrorCode_e
+*  function name | SppComRecvTimeout
+*  content       | receive timeout
+*  parameter[1]  | eConnectType :
+*  parameter[2]  | pu8Data :
+*  notice        | 
+*  return        | 
+******************************************************************************/
+INT16 SppComRecvTimeout(SppConnectType_e eConnectType,UINT8* pu8Data)
+{
+    INT16 s16RecRtv;
+    UINT32 u32Timeout;
+    u32Timeout = 0x60000;
+    s16RecRtv = 0;
+    while ((s16RecRtv == 0)&&(u32Timeout !=0))
+    {            
+        s16RecRtv = SppHalRecvData(pu8Data,1);
+        u32Timeout--;
+    }
+    return s16RecRtv;
+}
+
+
+/******************************************************************************
+*  function name | SppComRecv
+*  content       | ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½
+*  parameter[1]  | eConnectType :ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*  parameter[2]  | pu8RevDataBuf :ï¿½ï¿½Ý·ï¿½ï¿½Øµï¿½Ö·
+*  parameter[3]  | u32len :ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý³ï¿½ï¿½ï¿½
+*  notice        | ï¿½Å³ï¿½Ç·ï¿½ï¿½ï¿½Ýºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*  return        | 0ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½Ý°ï¿½ otherï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½
+******************************************************************************/
+UINT32 SppComRecvValidData(SppConnectType_e eConnectType,UINT8 *pu8RevDataBuf, UINT32 u32len)
+{
+    INT16 s16RecRtv;
+    UINT32 u32Timeout;
+    UINT8 u8_data;
+    UINT16 u16RecIndex;
+    UINT8 pu8acketHead[3] = {0,0,0};
+    if (pu8RevDataBuf == NULL)
+    {
+        return 0;
+    }
+    if(SPP_CONNECT_TYPE_MCU_4G == eConnectType)
+    {
+        while(1)  /*packet head*/
+        {
+            s16RecRtv = SppHalRecvData(&pu8acketHead[0],1);
+            if((s16RecRtv == 1)
+                &&(pu8acketHead[0] == SPP_PACKET_HEAD_DLE))
+            {
+                s16RecRtv = SppComRecvTimeout(eConnectType,&pu8acketHead[1]);
+                if((s16RecRtv == 1)
+                    &&(pu8acketHead[1] == SPP_PACKET_HEAD_SOM))
+                {                
+                    s16RecRtv = SppComRecvTimeout(eConnectType,&pu8acketHead[2]);                    
+                    break;
+                }
+                else{}
+            }
+            else{}                          
+          
+            if (s16RecRtv == 0)
+            {
+                return 0;
+            }
+            
+        }
+        u16RecIndex = 2;
+        (void)memcpy(pu8RevDataBuf,pu8acketHead,3);
+        
+        SppHalRecvData(&pu8RevDataBuf[3],253);
+        return 256;
+#if 1
+        while(1)  /*payload*/
+        {
+            s16RecRtv = SppComRecvTimeout(eConnectType,&u8_data);
+            if(s16RecRtv == 1)
+            {
+                u16RecIndex ++;
+                pu8RevDataBuf[u16RecIndex] = u8_data;
+                if (u8_data == SPP_PACKET_TAIL_DLE)
+                {
+                    s16RecRtv = SppComRecvTimeout(eConnectType,&u8_data);
+                    if (s16RecRtv == 1)
+                    {
+                        u16RecIndex ++;
+                        pu8RevDataBuf[u16RecIndex] = u8_data;
+                        if (u8_data == SPP_PACKET_TAIL_EOF)
+                        {
+                            return (u16RecIndex + 1);
+                        }
+                        else if(u16RecIndex == (u32len-1))
+                        {
+                            ApiLogPrint(_LOG_ENTRY, "SPP:TAILEOFerr\n");
+                            return 0;
+                        }
+                        else
+                        {}
+                    }
+                }
+                else if (u16RecIndex == (u32len-2))
+                {
+                    ApiLogPrint(_LOG_ENTRY, "SPP:TAILDLEerr\n");
+                    return 0;
+                }
+                else
+                {}
+
+            }
+            else
+            {
+                ApiLogPrint(_LOG_ENTRY, "SPP:PAYLOADerr\n");
+                return 0;
+            }
+        }
+#endif
+    }
+    else
+    {
+        return 0;  /*no data*/
+    }
+}
+
+
+/******************************************************************************
+*  function name | SppComTransfer
+*  content       | spiï¿½Õ·ï¿½ï¿½Ö·ï¿½
+*  parameter     | pu8SendData ï¿½ï¿½ï¿½Ö·ï¿½Ä»ï¿½ï¿½ï¿½ eConnectType ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				   pu8RevDataBuf : ï¿½ï¿½È¡ï¿½Ö·ï¿½Ä»ï¿½ï¿½ï¿½
+                   u32Buflen: ï¿½Õ·ï¿½ï¿½ï¿½ï¿½ï¿½
+*  return        | 0 / ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ö½ï¿½ï¿½ï¿½
 *  notice        | 
 ******************************************************************************/
-DiasErrorCode_e DiasSppComClose(DiasSppConnectType_e eConnectType)
+SPPErrorCode_e SppComTransfer(SppConnectType_e eConnectType,UINT8 *pu8SendData,UINT8 *pu8RevDataBuf, UINT32 u32len)
 {
-	INT32 iRet=0;
-	iRet=SPI_Close(eConnectType);
-	if(DIAS_SUCCESS==iRet)
-	{
-		DiasDcpdLog(LOG_DEBUG,"DiasSppComClose success.");
-		return DIAS_SUCCESS;
-	}
-	DiasDcpdLog(LOG_ERR,"DiasSppComClose fail.");
-	return DIAS_FAILURE;
+	return SPP_SUCCESS;
+}
+
+
+/******************************************************************************
+*  function name | SppComClose
+*  content       | ï¿½ï¿½Ê¼ï¿½ï¿½ spi ï¿½Ë¿ï¿½
+*  parameter     | eConnectType ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+*  return        | SPPErrorCode_e
+*  notice        | 
+******************************************************************************/
+SPPErrorCode_e SppComClose(SppConnectType_e eConnectType)
+{
+    return SPP_SUCCESS;
 
 }

@@ -48,7 +48,16 @@
 /*****************************************************************************
 ** function prototypes
 *****************************************************************************/
-BOOL Ecu_Misc_CompareByte(const UINT8* u8_src,const UINT8 u8_data,UINT16 u16_len)
+/****************************************************************************/
+/**
+ * Function Name: ApiMiscCompare
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/06, feifei.xu create this function
+ ****************************************************************************/
+BOOL ApiMiscCompare(const UINT8* u8_src,const UINT8 u8_data,UINT16 u16_len)
 {
 	UINT16 u16_i = 0;
 	for(u16_i = 0; u16_i < u16_len; u16_i++)
@@ -61,19 +70,50 @@ BOOL Ecu_Misc_CompareByte(const UINT8* u8_src,const UINT8 u8_data,UINT16 u16_len
 	return TRUE;
 }
 
-void delayus(UINT32 u32_us)
+/****************************************************************************/
+/**
+ * Function Name: delayus
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/06, feifei.xu create this function
+ ****************************************************************************/
+void delayus(UINT32 u32DelayTimeUs)
 {
-	UINT32 u32_i = 0;
-	UINT32 u32_j = 0;
+    UINT32 i;
+    UINT32 j;
 
-	for (u32_i = 0; u32_i < u32_us; u32_i++)
-	{
-		for(u32_j = 0; u32_j < 10; u32_j++)
-		{
-			;
-		}
-	}
+    for(i = 0; i < 11; i++)
+    {
+        for(j = 0; j < u32DelayTimeUs; j++)
+        {
+            ;
+        }
+    }
+}
+/****************************************************************************/
+/**
+ * Function Name: delayms
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/06, feifei.xu create this function
+ ****************************************************************************/
+void delayms(UINT32 u32DelayTimeMs)
+{
 
+    UINT32 i;
+    UINT32 j;
+
+    for(i = 0; i < (110*100); i++)
+    {
+        for(j = 0; j < u32DelayTimeMs; j++)
+        {
+            ;
+        }
+    }
 }
 /****************************************************************************/
 

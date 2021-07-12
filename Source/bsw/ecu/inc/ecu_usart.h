@@ -63,14 +63,18 @@
 void ApiUsartDebugInit(void);
 void ApiUsartBleInit(void);
 void ApiUsartMpuInit(void);
+void ApiUsartDebugIntDiable(void);
+void ApiUsartBleIntDiable(void);
+void ApiUsartMpuIntDiable(void);
 UINT32 ApiGetRegAddrFormDebugRx(void);
 UINT32 ApiGetRegAddrFormMpuRx(void);
+void ApiUsartHandler10ms(void);
 INT32 ApiUartDebugSend(const UINT8* u8_buff,const UINT32 u32_len);
 INT32 ApiUartBleSend(const UINT8* u8_buff,const UINT32 u32_len);
 INT32 ApiUartMpuSend(const UINT8* u8_buff,const UINT32 u32_len);
-BOOL ApiUsartDebugRead(UINT8* u8_data,UINT16* u16_len);
-BOOL ApiUsartBleRead(UINT8* u8_data,UINT16* p_u16_len);
-BOOL ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len);
+void ApiUsartDebugRead(UINT8* u8_data,UINT16* u16_len);
+void ApiUsartBleRead(UINT8* u8_data,UINT16* p_u16_len);
+void ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len);
 /*****************************************************************************
 ** other
 *****************************************************************************/

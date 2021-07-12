@@ -49,14 +49,16 @@ typedef struct
 
 typedef struct
 {
-	UINT8 u8_buff[FIFO_BUFF_SIZE];
-	UINT16 u16_len;
+	UINT16 u16_rx_len;
+	UINT8 u8_rx_buff[FIFO_BUFF_SIZE];
+
+	UINT16 u16_tx_len;
+	UINT8 u8_tx_buff[FIFO_BUFF_SIZE];
 }USART_FIFO_S;
 /*****************************************************************************
 ** global variable
 *****************************************************************************/
-UINT8 g_u8_debug_buff[FIFO_BUFF_SIZE];
-UINT16 u16_debug_len;
+
 /*****************************************************************************
 ** static variables
 *****************************************************************************/
@@ -96,7 +98,7 @@ static const USART_CFG_S s_c_ble_cfg =
 	0,										//波特率小数分母部分
 	USART_U7816R_PASSAGEWAY_TX0, 			//USART通道选择：TX0
 	INT_USART2,								//USART 中断向量
-	TRUE,									//USART RX中断使能
+	FALSE,									//USART RX中断使能
 	FALSE,									//USART TX中断使能
 	FALSE,									//USART RX DMA使能
 	FALSE									//USART TX DMA使能
@@ -107,7 +109,7 @@ static const USART_CFG_S s_c_mpu_cfg =
 	USART1_SFR, 							//USART选择：USART1
 	USART_MODE_FULLDUPLEXASY,				//USART模式配置：异步
 	USART_SLAVE_CLOCKSOURCE_EXTER,			//时钟源选择：从时钟源
-	USART_DIRECTION_FULL_DUPLEX,			//传输方向：全双工
+	USART_DIRECTION_FULL_DUPLEX,				//传输方向：全双工
 	USART_CLK_HFCLK,						//波特率发生器时钟源：外部高速时钟源
 	3, 							     		//波特率整数部分
 	1,										//波特率小数分子部分
@@ -116,7 +118,7 @@ static const USART_CFG_S s_c_mpu_cfg =
 	INT_USART1,								//USART 中断向量
 	FALSE,									//USART RX中断使能
 	FALSE,									//USART TX中断使能
-	TRUE,									//USART RX DMA使能
+	FALSE,									//USART RX DMA使能
 	FALSE									//USART TX DMA使能
 };
 
@@ -268,6 +270,89 @@ void ApiUsartMpuInit(void)
 }
 /****************************************************************************/
 /**
+ * Function Name: ApiUsartDebugIntDiable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiUsartDebugIntDiable(void)
+{
+	INT_Interrupt_Enable(INT_USART0,FALSE);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiUsartBleIntDiable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiUsartBleIntDiable(void)
+{
+	INT_Interrupt_Enable(INT_USART3,FALSE);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiUsartMpuIntDiable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiUsartMpuIntDiable(void)
+{
+	INT_Interrupt_Enable(INT_USART1,FALSE);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiUsartHandler10ms
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/06/30, feifei.xu create this function
+ ****************************************************************************/
+void ApiUsartHandler10ms(void)
+{
+	UINT16 u16_i = 0;
+	UINT16 u16_count = 0;
+
+	u16_count = s_debug_var.u16_tx_len;
+	for(u16_i = 0; u16_i < u16_count; u16_i++)
+	{
+		USART_SendData(s_c_debug_cfg.USARTx,s_debug_var.u8_tx_buff[u16_i]);
+		while(!USART_Get_Transmitter_Empty_Flag(s_c_debug_cfg.USARTx));
+	}
+	memset(s_debug_var.u8_tx_buff,0x00,u16_count);
+	s_debug_var.u16_tx_len = s_debug_var.u16_tx_len - u16_count;
+
+	u16_count = s_ble_var.u16_tx_len;
+	for(u16_i = 0; u16_i <u16_count; u16_i++)
+	{
+		USART_SendData(s_c_ble_cfg.USARTx,s_ble_var.u8_tx_buff[u16_i]);
+		while(!USART_Get_Transmitter_Empty_Flag(s_c_ble_cfg.USARTx));
+	}
+	memset(s_ble_var.u8_tx_buff,0x00,u16_count);
+	s_ble_var.u16_tx_len = s_ble_var.u16_tx_len - u16_count;
+
+	u16_count = s_mpu_var.u16_tx_len;
+	for(u16_i = 0; u16_i <u16_count; u16_i++)
+	{
+		USART_SendData(s_c_mpu_cfg.USARTx,s_mpu_var.u8_tx_buff[u16_i]);
+		while(!USART_Get_Transmitter_Empty_Flag(s_c_mpu_cfg.USARTx));
+	}
+	memset(s_mpu_var.u8_tx_buff,0x00,u16_count);
+	s_mpu_var.u16_tx_len = s_mpu_var.u16_tx_len - u16_count;
+
+	
+
+}
+/****************************************************************************/
+/**
  * Function Name: ApiUsartDebugRxAddr
  * Description: none
  *
@@ -279,6 +364,15 @@ UINT32 ApiGetRegAddrFormDebugRx(void)
 {
 	return Ecu_Usart_GetRxDataAddr(s_c_debug_cfg.USARTx);
 }
+/****************************************************************************/
+/**
+ * Function Name: ApiGetRegAddrFormMpuRx
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/06/30, feifei.xu create this function
+ ****************************************************************************/
 UINT32 ApiGetRegAddrFormMpuRx(void)
 {
 	return Ecu_Usart_GetRxDataAddr(s_c_mpu_cfg.USARTx);
@@ -294,7 +388,10 @@ UINT32 ApiGetRegAddrFormMpuRx(void)
  ****************************************************************************/
 INT32 ApiUartDebugSend(const UINT8* u8_buff,const UINT32 u32_len)
 {
-	return Ecu_Usart_SendData(s_c_debug_cfg.USARTx,u8_buff,u32_len);
+	memcpy(&s_debug_var.u8_tx_buff[s_debug_var.u16_tx_len], u8_buff, u32_len);
+	s_debug_var.u16_tx_len = s_debug_var.u16_tx_len + u32_len;
+	return OK;
+	// return Ecu_Usart_SendData(s_c_debug_cfg.USARTx,u8_buff,u32_len);
 }
 /****************************************************************************/
 /**
@@ -307,7 +404,10 @@ INT32 ApiUartDebugSend(const UINT8* u8_buff,const UINT32 u32_len)
  ****************************************************************************/
 INT32 ApiUartBleSend(const UINT8* u8_buff,const UINT32 u32_len)
 {
-	return Ecu_Usart_SendData(s_c_ble_cfg.USARTx,u8_buff,u32_len);
+	memcpy(&s_ble_var.u8_tx_buff[s_ble_var.u16_tx_len], u8_buff, u32_len);
+	s_ble_var.u16_tx_len = s_ble_var.u16_tx_len + u32_len;
+	return OK;
+	// return Ecu_Usart_SendData(s_c_ble_cfg.USARTx,u8_buff,u32_len);
 }
 /****************************************************************************/
 /**
@@ -320,7 +420,11 @@ INT32 ApiUartBleSend(const UINT8* u8_buff,const UINT32 u32_len)
  ****************************************************************************/
 INT32 ApiUartMpuSend(const UINT8* u8_buff,const UINT32 u32_len)
 {
-	return Ecu_Usart_SendData(s_c_mpu_cfg.USARTx,u8_buff,u32_len);
+	memcpy(&s_mpu_var.u8_tx_buff[s_mpu_var.u16_tx_len], u8_buff, u32_len);
+	s_mpu_var.u16_tx_len = s_mpu_var.u16_tx_len + u32_len;
+	return OK;
+	// return Ecu_Usart_SendData(s_c_mpu_cfg.USARTx,u8_buff,u32_len);
+
 }
 /****************************************************************************/
 /**
@@ -331,18 +435,16 @@ INT32 ApiUartMpuSend(const UINT8* u8_buff,const UINT32 u32_len)
  * Return:  none
  * Author:  2021/06/16, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiUsartDebugRead(UINT8* u8_data,UINT16* p_u16_len)
+void ApiUsartDebugRead(UINT8* u8_data,UINT16* p_u16_len)
 {
-	if(0x00 == s_debug_var.u16_len)
+	if(0x00 == s_debug_var.u16_rx_len)
 	{
-		return FALSE;
+		return;
 	}
-	memcpy(u8_data,s_debug_var.u8_buff,s_debug_var.u16_len);
-	*p_u16_len = s_debug_var.u16_len;
-	memset(s_debug_var.u8_buff,0x00,FIFO_BUFF_SIZE);
-	s_debug_var.u16_len = 0;
-
-	return TRUE;
+	memcpy(u8_data,s_debug_var.u8_rx_buff,s_debug_var.u16_rx_len);
+	*p_u16_len = s_debug_var.u16_rx_len;
+	memset(s_debug_var.u8_rx_buff,0x00,FIFO_BUFF_SIZE);
+	s_debug_var.u16_rx_len = 0;
 }
 /****************************************************************************/
 /**
@@ -353,18 +455,16 @@ BOOL ApiUsartDebugRead(UINT8* u8_data,UINT16* p_u16_len)
  * Return:  none
  * Author:  2021/06/16, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiUsartBleRead(UINT8* u8_data,UINT16* p_u16_len)
+void ApiUsartBleRead(UINT8* u8_data,UINT16* p_u16_len)
 {
-	if(0x00 == s_ble_var.u16_len)
+	if(0x00 == s_ble_var.u16_rx_len)
 	{
-		return FALSE;
+		return;
 	}
-	memcpy(u8_data,s_ble_var.u8_buff,s_ble_var.u16_len);
-	*p_u16_len = s_ble_var.u16_len;
-	memset(s_ble_var.u8_buff,0x00,FIFO_BUFF_SIZE);
-	s_ble_var.u16_len = 0;
-
-	return TRUE;
+	memcpy(u8_data,s_ble_var.u8_rx_buff,s_ble_var.u16_rx_len);
+	*p_u16_len = s_ble_var.u16_rx_len;
+	memset(s_ble_var.u8_rx_buff,0x00,FIFO_BUFF_SIZE);
+	s_ble_var.u16_rx_len = 0;
 }
 /****************************************************************************/
 /**
@@ -375,18 +475,16 @@ BOOL ApiUsartBleRead(UINT8* u8_data,UINT16* p_u16_len)
  * Return:  none
  * Author:  2021/06/16, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len)
+void ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len)
 {
-	if(0x00 == s_mpu_var.u16_len)
+	if(0x00 == s_mpu_var.u16_rx_len)
 	{
-		return FALSE;
+		return;
 	}
-	memcpy(u8_data,s_mpu_var.u8_buff,s_mpu_var.u16_len);
-	*p_u16_len = s_mpu_var.u16_len;
-	memset(s_mpu_var.u8_buff,0x00,FIFO_BUFF_SIZE);
-	s_mpu_var.u16_len = 0;
-
-	return TRUE;
+	memcpy(u8_data,s_mpu_var.u8_rx_buff,s_mpu_var.u16_rx_len);
+	*p_u16_len = s_mpu_var.u16_rx_len;
+	memset(s_mpu_var.u8_rx_buff,0x00,FIFO_BUFF_SIZE);
+	s_mpu_var.u16_rx_len = 0;
 }
 /****************************************************************************/
 /**
@@ -397,22 +495,7 @@ BOOL ApiUsartMpuRead(UINT8* u8_data,UINT16* p_u16_len)
  * Return:  none
  * Author:  create this function
  ****************************************************************************/
-BOOL ApiGetUartMpuStatus(void)
-{
-    UINT8 u8RxStatus = USART_Get_Receive_BUFR_Ready_Flag(s_c_mpu_cfg.USARTx);
-    UINT8 u8Ret;
 
-    if(1 == u8RxStatus)
-    {
-        u8Ret = 0;/* 此时不能发送 */
-    }
-    else
-    {
-        u8Ret = 1;/* 此时可以发送 */
-    }
-
-    return u8Ret;
-}
 /****************************************************************************/
 /**
  * Function Name: _USART0_exception
@@ -425,15 +508,6 @@ BOOL ApiGetUartMpuStatus(void)
 void __attribute__((interrupt))_USART0_exception(void)
 {
 
-	if(USART_Get_Receive_BUFR_Ready_Flag(s_c_debug_cfg.USARTx))
-	{
-		if(s_debug_var.u16_len >= FIFO_BUFF_SIZE)
-		{
-			s_debug_var.u16_len = 0;
-		}
-
-		s_debug_var.u8_buff[s_debug_var.u16_len++] = USART_ReceiveData(s_c_debug_cfg.USARTx);
-	}
 }
 /****************************************************************************/
 /**
@@ -446,14 +520,7 @@ void __attribute__((interrupt))_USART0_exception(void)
  ****************************************************************************/
 void __attribute__((interrupt))_USART3_exception(void)
 {
-	if(USART_Get_Receive_BUFR_Ready_Flag(s_c_ble_cfg.USARTx))
-	{
-		if(s_ble_var.u16_len >= FIFO_BUFF_SIZE)
-		{
-			s_ble_var.u16_len = 0;
-		}
-		s_ble_var.u8_buff[s_ble_var.u16_len++] = USART_ReceiveData(s_c_ble_cfg.USARTx);
-	}
+
 }
 /****************************************************************************/
 /**
@@ -466,14 +533,7 @@ void __attribute__((interrupt))_USART3_exception(void)
  ****************************************************************************/
 void __attribute__((interrupt))_USART1_exception(void)
 {
-	// if(USART_Get_Receive_BUFR_Ready_Flag(s_c_mpu_cfg.USARTx))
-	// {
-	// 	if(spp_mpu_var.u16_len >= 2048)//sizeof(spp_mpu_var.u8_buff))
-	// 	{
-	// 		spp_mpu_var.u16_len = 0;
-	// 	}
-	// 	spp_mpu_var.u8_buff[spp_mpu_var.u16_len++] = USART_ReceiveData(s_c_mpu_cfg.USARTx);
-	// }
+
 }
 /****************************************************************************/
 

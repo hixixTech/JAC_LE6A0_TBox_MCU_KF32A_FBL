@@ -1,9 +1,9 @@
 /******************************************************************************
  * (C) Copyright 2020 Anhui Domain Compute Co.Ltd
- * FILE NAME:    ecu_flash.h
+ * FILE NAME:    ecu_wdg.h
  * DESCRIPTION:
  * 
- * DATE BEGUN:   2021/05/20
+ * DATE BEGUN:   2021/07/07
  * BY:           feifei.xu
  * PRODUCT NAME:
  * APPLICATION:
@@ -12,22 +12,43 @@
  *****************************************************************************
  */
 
-#ifndef __ECU_FLASH_H__
-#define __ECU_FLASH_H__
+#ifndef __ECU_WDG_H__
+#define __ECU_WDG_H__
 
 /*****************************************************************************
 **#include 
 *****************************************************************************/
 #include "type.h"
+#include "rtos_taskinit.h"
+
 /*****************************************************************************
 **  typedef
 *****************************************************************************/
+
 
 /*****************************************************************************
 ** Constant Macro Definition
 *****************************************************************************/
 
+#define INBALID_FEED_WTD  (UINT8)(0xFF)
 
+#define CAN_FEED_WTD      (0)
+#define DTC_FEED_WTD      (CAN_FEED_WTD+1)
+#define BLE_FEED_WTD      (DTC_FEED_WTD+1)
+#define DCPD_FEED_WTD     (BLE_FEED_WTD+1)
+#define APP_FEED_WTD      (DCPD_FEED_WTD+1)
+#define AUX_FEED_WTD      (APP_FEED_WTD+1)
+#define MAX_FEED_WTD      (AUX_FEED_WTD+1)
+
+#define TASK_FEED_WTD   ( ((0x01)<<CAN_FEED_WTD) \
+                        | ((0x01)<<DTC_FEED_WTD) \
+                        | ((0x01)<<BLE_FEED_WTD) \
+                        | ((0x01)<<DCPD_FEED_WTD) \
+                        | ((0x01)<<APP_FEED_WTD) \
+                        | ((0x01)<<AUX_FEED_WTD))
+
+#define WDT_FEED_CHECK_PRD   20000U
+#define WDT_FEED_CHECK_CNT   (WDT_FEED_CHECK_PRD/SYS_MGR_PRD_MS)
 /*****************************************************************************
 ** System Macro Definition
 *****************************************************************************/
@@ -42,6 +63,7 @@
 ** Config Macro Definition
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Task Macro Definition
 *****************************************************************************/
@@ -51,6 +73,7 @@
 ** Variables
 *****************************************************************************/
 
+
 /*****************************************************************************
 ** Constants
 *****************************************************************************/
@@ -58,16 +81,12 @@
 
 /*****************************************************************************
 ** Function prototypeseb
-*****************************************************************************/	
-void Ecu_Flash_Init(void);
-void Ecu_Flash_ErasePage(UINT32 u32_addr);
-BOOL ApiFlashErasePage(UINT32 first_addr, UINT32 last_addr);
-BOOL Ecu_Flash_WriteByteToCode(UINT32 u32_addr,UINT8 u8_buff);
-BOOL Ecu_Flash_WriteHalfWordToCode(UINT32 u32_addr,UINT16 u16_flash_buff);
-BOOL Ecu_Flash_WriteWordToCode(UINT32 u32_addr,UINT32 u32_flash_buff);
-BOOL Ecu_Flash_WriteBlockDataToCode(UINT32 u32_addr,UINT8* p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadBlockDataFromCode(UINT32 u32_addr, UINT8 *p_u8_buff, UINT16 u16_len);
-BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_len,BOOL b_cmd);
+*****************************************************************************/
+INT32 ApiWdtHwtEnable(void);
+INT32 ApiWdtHwtDisable(void);
+void ApiWdtHwtFeedDog(void);
+UINT8 ApiTaskWtdCheck(void);
+void ApiTaskFeedWtd(UINT8 u8FeedWtd);
 /*****************************************************************************
 ** other
 *****************************************************************************/
@@ -75,7 +94,7 @@ BOOL Ecu_Flash_ReadWriteNumBlockData(UINT32 u32_addr,UINT8* u8_data,UINT16 u16_l
 
 /****************************************************************************/
 
-#endif	//__ECU_FLASH_H__
+#endif	//__ECU_WDG_H__
 
 /*****************************************************************************
 ** End File

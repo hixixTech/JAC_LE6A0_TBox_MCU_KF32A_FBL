@@ -176,6 +176,21 @@ UINT32 ApiAdcVoltRead(ADC_CHANNEL_E u32_channal)
 	u32_temp = (UINT32)Ecu_Adc_GetValue(s_c_st_adc0_cfg.ADCx,u32_channal);
 	u32_adcmv = (UINT32)((((3300*10000)/4095)*u32_temp)/10000);
 
+	if(NMBAT_DET == u32_channal)
+	{
+		u32_adcmv = u32_adcmv*2;
+	}
+
+	if(USB_DET == u32_channal)
+	{
+		u32_adcmv = u32_adcmv*2;
+	}
+
+	if(BAT_DET == u32_channal)
+	{
+		u32_adcmv = u32_adcmv*1.1+100;//y = 1100*x+100
+	}
+
 	return u32_adcmv;
 }
 /****************************************************************************/

@@ -24,6 +24,7 @@
 #include "ecu_gpio.h"
 #include "ecu_misc.h"
 #include <string.h>
+#include "os_log.h"
 /*****************************************************************************
 ** #define
 *****************************************************************************/
@@ -53,6 +54,14 @@ typedef struct
 	FunctionalState BUS_ERR_INT_Enable;
 }CAN_CFG_S;
 
+typedef struct
+{
+	UINT32 u32_id;
+	UINT8 u8_len;
+	UINT8 u8_data[8];
+	UINT32 u32_format;
+}CAN_TX_MSG;
+
 typedef enum
 {
 	CAN_ERR_OK = 0,
@@ -60,10 +69,12 @@ typedef enum
 }CAN_ERR_E;
 typedef struct
 {
-	UINT8 u8_count;
-	CAN_MSG_S rx_msg[CAN_RX_MAX_SIZE]
+	UINT16 can_addr;
+	UINT8 u8_rx_count;
+	CAN_MessageTypeDef rx_msg[CAN_RX_MAX_SIZE];
+	UINT8 u8_tx_count;
+	CAN_MessageTypeDef tx_msg[CAN_RX_MAX_SIZE];
 }CAN_MSG_FIFO_S;
-
 
 /*****************************************************************************
 ** global variable
@@ -82,10 +93,10 @@ const CAN_CFG_S c_st_can0_cfg =
 	FALSE,							//发送中断使能
 	FALSE,							//错误报警中断使能
 	FALSE,							//数据溢出中断使能
-	FALSE,							//唤醒中断使能
-	FALSE,							//错误消极中断使能
+	TRUE,							//唤醒中断使能
+	TRUE,							//错误消极中断使能
 	TRUE,							//仲裁丢失中断使能
-	TRUE,							//总线错误中断使能
+	FALSE,							//总线错误中断使能
 };
 
 const CAN_CFG_S c_st_can1_cfg = 
@@ -102,8 +113,8 @@ const CAN_CFG_S c_st_can1_cfg =
 	FALSE,							//数据溢出中断使能
 	FALSE,							//唤醒中断使能
 	FALSE,							//错误消极中断使能
-	TRUE,							//仲裁丢失中断使能
-	TRUE,							//总线错误中断使能
+	FALSE,							//仲裁丢失中断使能
+	FALSE,							//总线错误中断使能
 };
 
 const CAN_CFG_S c_st_can2_cfg = 
@@ -120,8 +131,8 @@ const CAN_CFG_S c_st_can2_cfg =
 	FALSE,							//数据溢出中断使能
 	FALSE,							//唤醒中断使能
 	FALSE,							//错误消极中断使能
-	TRUE,							//仲裁丢失中断使能
-	TRUE,							//总线错误中断使能
+	FALSE,							//仲裁丢失中断使能
+	FALSE,							//总线错误中断使能
 };
 
 /*****************************************************************************
@@ -130,10 +141,6 @@ const CAN_CFG_S c_st_can2_cfg =
 static CAN_MSG_FIFO_S s_st_can0_var;
 static CAN_MSG_FIFO_S s_st_can1_var;
 static CAN_MSG_FIFO_S s_st_can2_var;
-
-static CAN_MessageTypeDef s_st_can0msg;
-static CAN_MessageTypeDef s_st_can1msg;
-static CAN_MessageTypeDef s_st_can2msg;
 /*****************************************************************************
 ** static constants
 *****************************************************************************/
@@ -143,12 +150,7 @@ static CAN_MessageTypeDef s_st_can2msg;
 ** static function prototypes
 *****************************************************************************/
 static void Ecu_Can_Configure(const CAN_CFG_S* p_can_cfg);
-static CAN_ERR_E Ecu_Can_TransmitData(	CAN_SFRmap* CANx,   //CAN通道
-										UINT32 u32_id,		//ID
-										UINT8  u8_len,   	//长度
-										UINT8* u8_data,   	//数据指针
-										UINT32 u32_type, 	//帧类型
-										UINT32 u32_format);	//帧格式
+static CAN_ERR_E Ecu_Can_TransmitData(	CAN_SFRmap* CANx, CAN_MessageTypeDef* CAN_MessageStructure);
 /*****************************************************************************
 ** function prototypes
 *****************************************************************************/
@@ -180,51 +182,47 @@ static void Ecu_Can_Configure(const CAN_CFG_S* p_can_cfg)
 	CAN_InitStructure.m_AcceptanceMask = xCAN_MSK;				//验收屏蔽：0xffffffff
 	CAN_Reset(p_can_cfg->CANx);									//复位can
 	CAN_Configuration(p_can_cfg->CANx,&CAN_InitStructure);		//初始化can
-
+	CAN_Cmd(p_can_cfg->CANx,TRUE);
 	/********************CAN中断配置****************************/
 	
 	if(p_can_cfg->RX_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_RECEIVE;
 	}
-	else if(p_can_cfg->TX_INT_Enable)
+	if(p_can_cfg->TX_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_TRANSMIT;
 	}
-	else if(p_can_cfg->ERR_ALARM_INIT_Enable)
+	if(p_can_cfg->ERR_ALARM_INIT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_ERROR_ALARM;
 	}
-	else if(p_can_cfg->DATA_OVERFLOW_INT_Enable)
+	if(p_can_cfg->DATA_OVERFLOW_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_DATA_OVERFLOW;
 	}
-	else if(p_can_cfg->WAKE_UP_INT_Enable)
+	if(p_can_cfg->WAKE_UP_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_WAKE_UP;
 	}
-	else if(p_can_cfg->ERROR_NEGATIVE_INT_Enable)
+	if(p_can_cfg->ERROR_NEGATIVE_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_ERROR_NEGATIVE;
 	}
-	else if(p_can_cfg->ARBITRATION_LOST_INT_Enable)
+	if(p_can_cfg->ARBITRATION_LOST_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_ARBITRATION_LOST;
 	}
-	else if(p_can_cfg->BUS_ERR_INT_Enable)
+	if(p_can_cfg->BUS_ERR_INT_Enable)
 	{
 		u32_can_int_enable |= CAN_INT_BUS_ERROR;
 	}
-	else
-	{
-
-	}
+	
 	CAN_Set_INT_Enable(p_can_cfg->CANx,u32_can_int_enable,TRUE);		//开启中断
 	INT_Interrupt_Priority_Config(p_can_cfg->u32_Interrupt_Index,3,0);	//CAN抢占优先级4,子优先级0
 	INT_Clear_Interrupt_Flag(p_can_cfg->u32_Interrupt_Index);			//CAN清中断标志
 	INT_Interrupt_Enable(p_can_cfg->u32_Interrupt_Index,TRUE);			//CAN中断使能
 	INT_All_Enable (TRUE);												//全局中断使能
-	
 }
 /****************************************************************************/
 /**
@@ -240,51 +238,141 @@ static void Ecu_Can_Configure(const CAN_CFG_S* p_can_cfg)
  * Return:  none
  * Author:  2021/05/15, feifei.xu create this function
  ****************************************************************************/
-static CAN_ERR_E Ecu_Can_TransmitData(	CAN_SFRmap* CANx,   //CAN通道
-										UINT32 u32_id,		//ID
-										UINT8  u8_len,   	//长度
-										UINT8* u8_data,   	//数据指针
-										UINT32 u32_type, 	//帧类型
-										UINT32 u32_format)	//帧格式
+static CAN_ERR_E Ecu_Can_TransmitData(	CAN_SFRmap* CANx, CAN_MessageTypeDef* CAN_MessageStructure)
 {
-	CAN_MessageTypeDef	CAN_MessageStructure;
-
-	if(u32_format==CAN_FRAME_FORMAT_SFF)//标准帧
-	{
-		CAN_MessageStructure.m_StandardID = u32_id;		   //标准帧ID
-		CAN_MessageStructure.m_ExtendedID = 0;			   //扩展帧ID
-	}
-	else
-	{
-		CAN_MessageStructure.m_StandardID = 0;				//标准帧ID
-		CAN_MessageStructure.m_ExtendedID = u32_id;			//扩展帧ID
-	}
-	if(u8_len> 8)
-	{
-		CAN_MessageStructure.m_DataLength = 8;
-	}
-	else
-	{
-		CAN_MessageStructure.m_DataLength = u8_len;
-	}
-	memcpy(CAN_MessageStructure.m_Data,u8_data,CAN_MessageStructure.m_DataLength);	//数据
-	CAN_MessageStructure.m_FrameFormat 		= u32_format;     	//帧格式
-	CAN_MessageStructure.m_RemoteTransmit 	= u32_type;	 		//帧类型
 	/* 发送缓冲器空 */
-	delayus(120);	//120us
-	if(!CAN_Get_Transmit_Status(CANx,CAN_TX_BUFFER_STATUS))
+	while((!CAN_Get_Transmit_Status(CANx,CAN_TX_BUFFER_STATUS)))
 	{
-		return CAM_ERR_BUFFFULL;
 	}
 	/* 转载数据到发送缓冲器 */
-	CAN_Transmit_Message_Configuration(CANx,&CAN_MessageStructure);
-	CANx->CTLR = CANx->CTLR | 0x300;
-	delayus(5);
-	if((CANx->CTLR & CAN_CTLR_TXSTA) >> CAN_CTLR_TXSTA_POS)
-	{
-		return CAM_ERR_BUFFFULL;
-	}
+	CAN_Transmit_Message_Configuration(CANx,CAN_MessageStructure);
+	// CAN_Transmit_Single(CANx);
+	CAN_Transmit_Repeat(CANx);
+
 	return CAN_ERR_OK;
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiCanHandler1ms
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/06/27, feifei.xu create this function
+ ****************************************************************************/
+void ApiCanHandler1ms(void)
+{
+	UINT8 u8_i = 0;
+	UINT8 u8_count = 0;
+
+	u8_count = CAN_Get_Receive_Message_Counter(c_st_can0_cfg.CANx);
+	for(u8_i = 0; u8_i < u8_count; u8_i++)
+	{
+		if(s_st_can0_var.u8_rx_count >= CAN_RX_MAX_SIZE)
+		{
+			s_st_can0_var.u8_rx_count = 0;
+		}
+		CAN_Receive_Message_Configuration(c_st_can0_cfg.CANx, s_st_can0_var.can_addr, &s_st_can0_var.rx_msg[s_st_can0_var.u8_rx_count++]);
+		s_st_can0_var.can_addr = s_st_can0_var.can_addr + 0x10;
+		CAN_Release_Receive_Buffer(c_st_can0_cfg.CANx,1);
+		if(s_st_can0_var.can_addr > 0xF0)
+		{
+			s_st_can0_var.can_addr = 0x00;
+		}
+	}
+	// CAN_Release_Receive_Buffer(c_st_can0_cfg.CANx,u8_count);
+
+	u8_count = CAN_Get_Receive_Message_Counter(c_st_can1_cfg.CANx);
+	for(u8_i = 0; u8_i < u8_count; u8_i++)
+	{
+		if(s_st_can1_var.u8_rx_count >= CAN_RX_MAX_SIZE)
+		{
+			s_st_can1_var.u8_rx_count = 0;
+		}
+		CAN_Receive_Message_Configuration(c_st_can1_cfg.CANx, s_st_can1_var.can_addr, &s_st_can1_var.rx_msg[s_st_can1_var.u8_rx_count++]);
+		s_st_can1_var.can_addr = s_st_can1_var.can_addr + 0x10;
+		CAN_Release_Receive_Buffer(c_st_can1_cfg.CANx,1);
+		if(s_st_can1_var.can_addr > 0xF0)
+		{
+			s_st_can1_var.can_addr = 0x00;
+		}
+	}
+
+	u8_count = CAN_Get_Receive_Message_Counter(c_st_can2_cfg.CANx);
+	for(u8_i = 0; u8_i < u8_count; u8_i++)
+	{
+		if(s_st_can2_var.u8_rx_count >= CAN_RX_MAX_SIZE)
+		{
+			s_st_can2_var.u8_rx_count = 0;
+		}
+		CAN_Receive_Message_Configuration(c_st_can2_cfg.CANx, s_st_can2_var.can_addr, &s_st_can2_var.rx_msg[s_st_can2_var.u8_rx_count++]);
+		s_st_can2_var.can_addr = s_st_can2_var.can_addr + 0x10;
+		CAN_Release_Receive_Buffer(c_st_can2_cfg.CANx,1);
+		if(s_st_can2_var.can_addr > 0xF0)
+		{
+			s_st_can2_var.can_addr = 0x00;
+		}
+	}
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiCanHandler5ms
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/06/27, feifei.xu create this function
+ ****************************************************************************/
+void ApiCanHandler5ms(void)
+{
+	UINT8 u8_i = 0;
+	UINT8 u8_count = 0;
+
+	u8_count = s_st_can0_var.u8_tx_count;
+
+	for(u8_i = 0; u8_i < u8_count; u8_i++)
+	{
+		if(CAN_ERR_OK == Ecu_Can_TransmitData(c_st_can0_cfg.CANx, &s_st_can0_var.tx_msg[u8_i]))
+		{
+			s_st_can0_var.tx_msg[u8_i].m_StandardID = 0;
+			s_st_can0_var.tx_msg[u8_i].m_ExtendedID = 0;
+			s_st_can0_var.tx_msg[u8_i].m_DataLength = 0;
+			s_st_can0_var.tx_msg[u8_i].m_FrameFormat = 0;
+			s_st_can0_var.tx_msg[u8_i].m_RemoteTransmit = 0;
+			memset(s_st_can0_var.tx_msg[u8_i].m_Data,0x00,8);
+		}
+	}
+	s_st_can0_var.u8_tx_count = s_st_can0_var.u8_tx_count - u8_count;
+
+	u8_count = s_st_can1_var.u8_tx_count;
+	for(u8_i = 0; u8_i < s_st_can1_var.u8_tx_count; u8_i++)
+	{
+		if(CAN_ERR_OK == Ecu_Can_TransmitData(c_st_can1_cfg.CANx, &s_st_can1_var.tx_msg[u8_i]))
+		{
+			s_st_can1_var.tx_msg[u8_i].m_StandardID = 0;
+			s_st_can1_var.tx_msg[u8_i].m_ExtendedID = 0;
+			s_st_can1_var.tx_msg[u8_i].m_DataLength = 0;
+			s_st_can1_var.tx_msg[u8_i].m_FrameFormat = 0;
+			s_st_can1_var.tx_msg[u8_i].m_RemoteTransmit = 0;
+			memset(s_st_can1_var.tx_msg[u8_i].m_Data,0x00,8);
+		}
+	}
+	s_st_can1_var.u8_tx_count = s_st_can1_var.u8_tx_count - u8_count;
+
+	u8_count = s_st_can2_var.u8_tx_count;
+	for(u8_i = 0; u8_i < s_st_can2_var.u8_tx_count; u8_i++)
+	{
+		if(CAN_ERR_OK == Ecu_Can_TransmitData(c_st_can2_cfg.CANx, &s_st_can2_var.tx_msg[u8_i]))
+		{
+			s_st_can2_var.tx_msg[u8_i].m_StandardID = 0;
+			s_st_can2_var.tx_msg[u8_i].m_ExtendedID = 0;
+			s_st_can2_var.tx_msg[u8_i].m_DataLength = 0;
+			s_st_can2_var.tx_msg[u8_i].m_FrameFormat = 0;
+			s_st_can2_var.tx_msg[u8_i].m_RemoteTransmit = 0;
+			memset(s_st_can2_var.tx_msg[u8_i].m_Data,0x00,8);
+		}
+	}
+	s_st_can2_var.u8_tx_count = s_st_can2_var.u8_tx_count - u8_count;
 }
 /****************************************************************************/
 /**
@@ -324,6 +412,45 @@ void ApiCan1Init(void)
 void ApiCan2Init(void)
 {
 	Ecu_Can_Configure(&c_st_can2_cfg);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiCan0IntDisable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiCan0IntDisable(void)
+{
+	INT_Interrupt_Enable(c_st_can0_cfg.u32_Interrupt_Index,FALSE);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiCan1IntDisable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiCan1IntDisable(void)
+{
+	INT_Interrupt_Enable(c_st_can1_cfg.u32_Interrupt_Index,FALSE);
+}
+/****************************************************************************/
+/**
+ * Function Name: ApiCan2IntDisable
+ * Description: none
+ *
+ * Param:   none
+ * Return:  none
+ * Author:  2021/07/07, feifei.xu create this function
+ ****************************************************************************/
+void ApiCan2IntDisable(void)
+{
+	INT_Interrupt_Enable(c_st_can2_cfg.u32_Interrupt_Index,FALSE);
 }
 /****************************************************************************/
 /**
@@ -382,9 +509,15 @@ void ApiCan2CheckBusOff(void)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-UINT8 ApiCan0Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
+void ApiCan0Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
 {
-	return Ecu_Can_TransmitData(c_st_can0_cfg.CANx,u32_id,u8_len,u8_data,CAN_DATA_FRAME,CAN_FRAME_FORMAT_SFF);
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_StandardID = u32_id;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_ExtendedID = 0;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_DataLength = u8_len;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_FrameFormat = CAN_FRAME_FORMAT_SFF;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_RemoteTransmit = CAN_DATA_FRAME;
+	memcpy(s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_Data, u8_data, u8_len);
+	s_st_can0_var.u8_tx_count++;
 }
 /****************************************************************************/
 /**
@@ -395,9 +528,15 @@ UINT8 ApiCan0Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-UINT8 ApiCan1Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
+void ApiCan1Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
 {
-	return Ecu_Can_TransmitData(c_st_can1_cfg.CANx,u32_id,u8_len,u8_data,CAN_DATA_FRAME,CAN_FRAME_FORMAT_SFF);
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_StandardID = u32_id;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_ExtendedID = 0;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_DataLength = u8_len;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_FrameFormat = CAN_FRAME_FORMAT_SFF;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_RemoteTransmit = CAN_DATA_FRAME;
+	memcpy(s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_Data, u8_data, u8_len);
+	s_st_can1_var.u8_tx_count++;
 }
 /****************************************************************************/
 /**
@@ -408,9 +547,15 @@ UINT8 ApiCan1Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-UINT8 ApiCan2Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
+void ApiCan2Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
 {
-	return Ecu_Can_TransmitData(c_st_can2_cfg.CANx,u32_id,u8_len,u8_data,CAN_DATA_FRAME,CAN_FRAME_FORMAT_SFF);
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_StandardID = u32_id;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_ExtendedID = 0;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_DataLength = u8_len;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_FrameFormat = CAN_FRAME_FORMAT_SFF;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_RemoteTransmit = CAN_DATA_FRAME;
+	memcpy(s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_Data, u8_data, u8_len);
+	s_st_can2_var.u8_tx_count++;
 }
 /****************************************************************************/
 /**
@@ -421,9 +566,16 @@ UINT8 ApiCan2Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-UINT8 ApiCan0ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
+void ApiCan0ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
 {
-	return Ecu_Can_TransmitData(c_st_can0_cfg.CANx,u32_id,u8_len,u8_data,CAN_DATA_FRAME,CAN_FRAME_FORMAT_EFF);
+	
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_StandardID = 0;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_ExtendedID = u32_id;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_DataLength = u8_len;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_FrameFormat = CAN_FRAME_FORMAT_EFF;
+	s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_RemoteTransmit = CAN_DATA_FRAME;
+	memcpy(s_st_can0_var.tx_msg[s_st_can0_var.u8_tx_count].m_Data, u8_data, u8_len);
+	s_st_can0_var.u8_tx_count++;
 }
 /****************************************************************************/
 /**
@@ -434,9 +586,15 @@ UINT8 ApiCan0ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-UINT8 ApiCan1ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
+void ApiCan1ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
 {
-	return Ecu_Can_TransmitData(c_st_can1_cfg.CANx,u32_id,u8_len,u8_data,CAN_DATA_FRAME,CAN_FRAME_FORMAT_EFF);
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_StandardID = 0;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_ExtendedID = u32_id;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_DataLength = u8_len;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_FrameFormat = CAN_FRAME_FORMAT_EFF;
+	s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_RemoteTransmit = CAN_DATA_FRAME;
+	memcpy(s_st_can1_var.tx_msg[s_st_can1_var.u8_tx_count].m_Data, u8_data, u8_len);
+	s_st_can1_var.u8_tx_count++;
 }
 /****************************************************************************/
 /**
@@ -447,9 +605,15 @@ UINT8 ApiCan1ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  * Return:  none
  * Author:  2021/06/15, feifei.xu create this function
  ****************************************************************************/
-UINT8 ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
+void ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
 {
-	return Ecu_Can_TransmitData(c_st_can2_cfg.CANx,u32_id,u8_len,u8_data,CAN_DATA_FRAME,CAN_FRAME_FORMAT_EFF);
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_StandardID = 0;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_ExtendedID = u32_id;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_DataLength = u8_len;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_FrameFormat = CAN_FRAME_FORMAT_EFF;
+	s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_RemoteTransmit = CAN_DATA_FRAME;
+	memcpy(s_st_can2_var.tx_msg[s_st_can2_var.u8_tx_count].m_Data, u8_data, u8_len);
+	s_st_can2_var.u8_tx_count++;
 }
 
 /****************************************************************************/
@@ -463,27 +627,41 @@ UINT8 ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data)
  ****************************************************************************/
 BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count)
 {
-
 	UINT8 u8_i = 0;
-	if(0x00 == s_st_can0_var.u8_count)
+	UINT8 u8_temp = 0;
+
+	u8_temp = s_st_can0_var.u8_rx_count;
+
+	if(0x00 == u8_temp)
 	{
 		return FALSE;
 	}
 
-	for(u8_i = 0; u8_i < s_st_can0_var.u8_count; u8_i++)
+	for(u8_i = 0; u8_i < u8_temp; u8_i++)
 	{
-		p_can_msg[u8_i].u32_id = s_st_can0_var.rx_msg[u8_i].u32_id;
-		p_can_msg[u8_i].u8_len = s_st_can0_var.rx_msg[u8_i].u8_len;
-		memcpy(p_can_msg[u8_i].u8_data,s_st_can0_var.rx_msg[u8_i].u8_data,8);
-		s_st_can0_var.rx_msg[u8_i].u32_id = 0x00;
-		s_st_can0_var.rx_msg[u8_i].u8_len = 0x00;
-		memset(s_st_can0_var.rx_msg[u8_i].u8_data,0x00,8);
+		if(CAN_FRAME_FORMAT_SFF == s_st_can0_var.rx_msg[u8_i].m_FrameFormat)
+		{
+			p_can_msg[u8_i].u32_id = s_st_can0_var.rx_msg[u8_i].m_StandardID;
+		}
+		else
+		{
+			p_can_msg[u8_i].u32_id = s_st_can0_var.rx_msg[u8_i].m_ExtendedID;
+		}
+		p_can_msg[u8_i].u8_len = s_st_can0_var.rx_msg[u8_i].m_DataLength;
+
+		memcpy(p_can_msg[u8_i].u8_data,s_st_can0_var.rx_msg[u8_i].m_Data,8);
+		s_st_can0_var.rx_msg[u8_i].m_StandardID = 0x00;
+		s_st_can0_var.rx_msg[u8_i].m_ExtendedID = 0x00;
+		s_st_can0_var.rx_msg[u8_i].m_DataLength = 0x00;
+		s_st_can0_var.rx_msg[u8_i].m_FrameFormat = 0x00;
+		s_st_can0_var.rx_msg[u8_i].m_RemoteTransmit = 0x00;
+		memset(s_st_can0_var.rx_msg[u8_i].m_Data,0x00,8);
 	}
-	*u8_count = s_st_can0_var.u8_count;
-	s_st_can0_var.u8_count = 0;
+
+	*u8_count = u8_temp;
+	s_st_can0_var.u8_rx_count = s_st_can0_var.u8_rx_count - u8_temp;
 
 	return TRUE;
-
 }
 /****************************************************************************/
 /**
@@ -494,26 +672,36 @@ BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count)
  * Return:  none
  * Author:  2021/06/17, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
+BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count)
 {
-
 	UINT8 u8_i = 0;
-	if(0x00 == s_st_can1_var.u8_count)
+
+	if(0x00 == s_st_can1_var.u8_rx_count)
 	{
 		return FALSE;
 	}
 
-	for(u8_i = 0; u8_i < s_st_can1_var.u8_count; u8_i++)
+	for(u8_i = 0; u8_i < s_st_can1_var.u8_rx_count; u8_i++)
 	{
-		p_can_msg[u8_i].u32_id = s_st_can1_var.rx_msg[u8_i].u32_id;
-		p_can_msg[u8_i].u8_len = s_st_can1_var.rx_msg[u8_i].u8_len;
-		memcpy(p_can_msg[u8_i].u8_data,s_st_can1_var.rx_msg[u8_i].u8_data,8);
-		s_st_can1_var.rx_msg[u8_i].u32_id = 0x00;
-		s_st_can1_var.rx_msg[u8_i].u8_len = 0x00;
-		memset(s_st_can1_var.rx_msg[u8_i].u8_data,0x00,8);
+		if(CAN_FRAME_FORMAT_SFF == s_st_can1_var.rx_msg[u8_i].m_FrameFormat)
+		{
+			p_can_msg[u8_i].u32_id = s_st_can1_var.rx_msg[u8_i].m_StandardID;
+		}
+		else
+		{
+			p_can_msg[u8_i].u32_id = s_st_can1_var.rx_msg[u8_i].m_ExtendedID;
+		}
+		p_can_msg[u8_i].u8_len = s_st_can1_var.rx_msg[u8_i].m_DataLength;
+		memcpy(p_can_msg[u8_i].u8_data,s_st_can1_var.rx_msg[u8_i].m_Data,8);
+		s_st_can1_var.rx_msg[u8_i].m_StandardID = 0x00;
+		s_st_can1_var.rx_msg[u8_i].m_ExtendedID = 0x00;
+		s_st_can1_var.rx_msg[u8_i].m_DataLength = 0x00;
+		s_st_can1_var.rx_msg[u8_i].m_FrameFormat = 0x00;
+		s_st_can1_var.rx_msg[u8_i].m_RemoteTransmit = 0x00;
+		memset(s_st_can1_var.rx_msg[u8_i].m_Data,0x00,8);
 	}
-	u8_count = s_st_can1_var.u8_count;
-	s_st_can1_var.u8_count = 0;
+	*u8_count = s_st_can1_var.u8_rx_count;
+	s_st_can1_var.u8_rx_count = 0;
 
 	return TRUE;
 	
@@ -527,26 +715,36 @@ BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
  * Return:  none
  * Author:  2021/06/17, feifei.xu create this function
  ****************************************************************************/
-BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
+BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count)
 {
-
 	UINT8 u8_i = 0;
-	if(0x00 == s_st_can2_var.u8_count)
+
+	if(0x00 == s_st_can2_var.u8_rx_count)
 	{
 		return FALSE;
 	}
 
-	for(u8_i = 0; u8_i < s_st_can2_var.u8_count; u8_i++)
+	for(u8_i = 0; u8_i < s_st_can2_var.u8_rx_count; u8_i++)
 	{
-		p_can_msg[u8_i].u32_id = s_st_can2_var.rx_msg[u8_i].u32_id;
-		p_can_msg[u8_i].u8_len = s_st_can2_var.rx_msg[u8_i].u8_len;
-		memcpy(p_can_msg[u8_i].u8_data,s_st_can2_var.rx_msg[u8_i].u8_data,8);
-		s_st_can2_var.rx_msg[u8_i].u32_id = 0x00;
-		s_st_can2_var.rx_msg[u8_i].u8_len = 0x00;
-		memset(s_st_can2_var.rx_msg[u8_i].u8_data,0x00,8);
+		if(CAN_FRAME_FORMAT_SFF == s_st_can2_var.rx_msg[u8_i].m_FrameFormat)
+		{
+			p_can_msg[u8_i].u32_id = s_st_can2_var.rx_msg[u8_i].m_StandardID;
+		}
+		else
+		{
+			p_can_msg[u8_i].u32_id = s_st_can2_var.rx_msg[u8_i].m_ExtendedID;
+		}
+		p_can_msg[u8_i].u8_len = s_st_can2_var.rx_msg[u8_i].m_DataLength;
+		memcpy(p_can_msg[u8_i].u8_data,s_st_can2_var.rx_msg[u8_i].m_Data,8);
+		s_st_can2_var.rx_msg[u8_i].m_StandardID = 0x00;
+		s_st_can2_var.rx_msg[u8_i].m_ExtendedID = 0x00;
+		s_st_can2_var.rx_msg[u8_i].m_DataLength = 0x00;
+		s_st_can2_var.rx_msg[u8_i].m_FrameFormat = 0x00;
+		s_st_can2_var.rx_msg[u8_i].m_RemoteTransmit = 0x00;
+		memset(s_st_can2_var.rx_msg[u8_i].m_Data,0x00,8);
 	}
-	u8_count = s_st_can2_var.u8_count;
-	s_st_can2_var.u8_count = 0;
+	*u8_count = s_st_can2_var.u8_rx_count;
+	s_st_can2_var.u8_rx_count = 0;
 
 	return TRUE;
 
@@ -562,38 +760,7 @@ BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count)
  ****************************************************************************/
 void __attribute__((interrupt))_CAN1_exception (void)
 {
-	static UINT8 s_u8_addr = 0x00;
 
-	INT_Clear_Interrupt_Flag(c_st_can1_cfg.u32_Interrupt_Index);
-
-	if(CAN_Get_INT_Flag(c_st_can1_cfg.CANx,CAN_INT_RECEIVE) != RESET)
-	{
-		if(s_st_can1_var.u8_count >= CAN_RX_MAX_SIZE)
-		{
-			s_st_can1_var.u8_count = 0;
-		}
-		
-		CAN_Receive_Message_Configuration(c_st_can1_cfg.CANx,s_u8_addr,&s_st_can1msg);
-		s_u8_addr = s_u8_addr + 0x10;
-		CAN_Release_Receive_Buffer(c_st_can1_cfg.CANx,1);
-		if(CAN_FRAME_FORMAT_SFF == s_st_can1msg.m_FrameFormat)
-		{
-			s_st_can1_var.rx_msg[s_st_can1_var.u8_count].u32_id = s_st_can1msg.m_StandardID;
-		}
-		else
-		{
-			s_st_can1_var.rx_msg[s_st_can1_var.u8_count].u32_id = s_st_can1msg.m_ExtendedID;
-		}
-		s_st_can1_var.rx_msg[s_st_can1_var.u8_count].u8_len = s_st_can1msg.m_DataLength;
-		memcpy(s_st_can1_var.rx_msg[s_st_can1_var.u8_count].u8_data,s_st_can1msg.m_Data,8);
-		s_st_can1_var.u8_count++;
-
-		if(s_u8_addr >= 0xF0)
-		{
-			s_u8_addr = 0x00;
-		}
-
-	}
 }
 /****************************************************************************/
 /**
@@ -606,35 +773,7 @@ void __attribute__((interrupt))_CAN1_exception (void)
  ****************************************************************************/
 void __attribute__((interrupt))_CAN3_exception (void)
 {
-	static UINT8 s_u8_addr = 0x00;
-	INT_Clear_Interrupt_Flag(c_st_can2_cfg.u32_Interrupt_Index);
 
-	if(CAN_Get_INT_Flag(c_st_can2_cfg.CANx,CAN_INT_RECEIVE) != RESET)
-	{
-		if(s_st_can2_var.u8_count >= CAN_RX_MAX_SIZE)
-		{
-			s_st_can2_var.u8_count = 0;
-		}
-		CAN_Receive_Message_Configuration(c_st_can2_cfg.CANx,s_u8_addr,&s_st_can2msg);
-		s_u8_addr = s_u8_addr + 0x10;
-		CAN_Release_Receive_Buffer(c_st_can2_cfg.CANx,1);
-		if(CAN_FRAME_FORMAT_SFF == s_st_can2msg.m_FrameFormat)
-		{
-			s_st_can2_var.rx_msg[s_st_can2_var.u8_count].u32_id = s_st_can2msg.m_StandardID;
-		}
-		else
-		{
-			s_st_can2_var.rx_msg[s_st_can2_var.u8_count].u32_id = s_st_can2msg.m_ExtendedID;
-		}
-		s_st_can2_var.rx_msg[s_st_can2_var.u8_count].u8_len = s_st_can2msg.m_DataLength;
-		memcpy(s_st_can2_var.rx_msg[s_st_can2_var.u8_count].u8_data,s_st_can2msg.m_Data,8);
-		s_st_can2_var.u8_count++;
-
-		if(s_u8_addr >= 0xF0)
-		{
-			s_u8_addr = 0x00;
-		}
-	}
 }
 /****************************************************************************/
 /**
@@ -647,34 +786,34 @@ void __attribute__((interrupt))_CAN3_exception (void)
  ****************************************************************************/
 void __attribute__((interrupt))_CAN4_exception (void)
 {
-	static UINT8 s_u8_addr = 0x00;
+	UINT8 u8_i = 0;
+	UINT8 u8_count = 0;
 
 	INT_Clear_Interrupt_Flag(c_st_can0_cfg.u32_Interrupt_Index);
 
+	if(CAN_Get_INT_Flag(c_st_can0_cfg.CANx,CAN_INT_ARBITRATION_LOST) != RESET)
+	{
+		CAN_Clear_INT_Flag(c_st_can0_cfg.CANx,CAN_INT_ARBITRATION_LOST);
+	}
+
+	if(CAN_Get_INT_Flag(c_st_can0_cfg.CANx,CAN_INT_ERROR_NEGATIVE) != RESET)
+	{
+		CAN_Clear_INT_Flag(c_st_can0_cfg.CANx,CAN_INT_ERROR_NEGATIVE);
+	}
+
 	if(CAN_Get_INT_Flag(c_st_can0_cfg.CANx,CAN_INT_RECEIVE) != RESET)
 	{
-		if(s_st_can0_var.u8_count >= CAN_RX_MAX_SIZE)
+		if(s_st_can0_var.u8_rx_count >= CAN_RX_MAX_SIZE)
 		{
-			s_st_can0_var.u8_count = 0;
+			s_st_can0_var.u8_rx_count = 0;
 		}
-		CAN_Receive_Message_Configuration(c_st_can0_cfg.CANx,s_u8_addr,&s_st_can0msg);
-		s_u8_addr = s_u8_addr + 0x10;
+		CAN_Receive_Message_Configuration(c_st_can0_cfg.CANx, s_st_can0_var.can_addr, &s_st_can0_var.rx_msg[s_st_can0_var.u8_rx_count++]);
+		s_st_can0_var.can_addr = s_st_can0_var.can_addr + 0x10;
 		CAN_Release_Receive_Buffer(c_st_can0_cfg.CANx,1);
-		if(CAN_FRAME_FORMAT_SFF == s_st_can0msg.m_FrameFormat)
-		{
-			s_st_can0_var.rx_msg[s_st_can0_var.u8_count].u32_id = s_st_can0msg.m_StandardID;
-		}
-		else
-		{
-			s_st_can0_var.rx_msg[s_st_can0_var.u8_count].u32_id = s_st_can0msg.m_ExtendedID;
-		}
-		s_st_can0_var.rx_msg[s_st_can0_var.u8_count].u8_len = s_st_can0msg.m_DataLength;
-		memcpy(s_st_can0_var.rx_msg[s_st_can0_var.u8_count].u8_data,s_st_can0msg.m_Data,8);
-		s_st_can0_var.u8_count++;
 
-		if(s_u8_addr >= 0xF0)
+		if(s_st_can0_var.can_addr > 0xF0)
 		{
-			s_u8_addr = 0x00;
+			s_st_can0_var.can_addr = 0x00;
 		}
 	}
 }

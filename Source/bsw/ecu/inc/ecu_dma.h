@@ -65,6 +65,7 @@
 ** Function prototypeseb
 *****************************************************************************/
 void ApiDmaMpuRxInit(UINT32 u32_per_addr,UINT32 u32_mem_addr);
+void ApiDma0IntDisable(void);
 UINT16 ApiDmaMpuTransferNum(void);
 
 /*****************************************************************************

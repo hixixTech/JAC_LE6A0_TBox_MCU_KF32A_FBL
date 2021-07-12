@@ -77,15 +77,20 @@ void ApiCan2Init(void);
 void ApiCan0CheckBusOff(void);
 void ApiCan1CheckBusOff(void);
 void ApiCan2CheckBusOff(void);
-UINT8 ApiCan0Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
-UINT8 ApiCan1Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
-UINT8 ApiCan2Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
-UINT8 ApiCan0ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
-UINT8 ApiCan1ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
-UINT8 ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
+void ApiCanHandler5ms(void);
+void ApiCanHandler1ms(void);
+void ApiCan0IntDisable(void);
+void ApiCan1IntDisable(void);
+void ApiCan2IntDisable(void);
+void ApiCan0Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
+void ApiCan1Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
+void ApiCan2Send(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
+void ApiCan0ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
+void ApiCan1ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
+void ApiCan2ExtSend(UINT32 u32_id, UINT8 u8_len, UINT8* u8_data);
 BOOL ApiCan0ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count);
-BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count);
-BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8 u8_count);
+BOOL ApiCan1ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count);
+BOOL ApiCan2ReiciveMsg(CAN_MSG_S* p_can_msg,UINT8* u8_count);
 /*****************************************************************************
 ** other
 *****************************************************************************/

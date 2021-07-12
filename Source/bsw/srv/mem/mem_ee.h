@@ -65,9 +65,9 @@
 *****************************************************************************/
 extern void Mem_EE_Init(void);
 extern void Mem_EE_Handler10ms(void);
-extern BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_Offset,INT16 u16_len);
+extern BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len);
 extern BOOL Mem_EE_write(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len);
-extern BOOL ApiNvramReadSyncInd(UINT32 u32_id, UINT16 u16_len,UINT16 u16_Offset,UINT8* p_u8_buff) ;
+extern BOOL ApiNvramReadSyncInd(UINT32 u32_id, UINT16 u16_len,UINT8* p_u8_buff) ;
 extern BOOL ApiNvramWritAsyncInd(UINT32 u32_id, UINT16 u16_len,UINT8* p_u8_buff);
 /*****************************************************************************
 ** other

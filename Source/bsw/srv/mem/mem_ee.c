@@ -154,7 +154,7 @@ static void Mem_EE_DataInit(void)
                 continue;
             }
 
-            if(TRUE == Ecu_Misc_CompareByte(p_ee_var->p_u8_ram, 0xFF, p_ee_var->u16_len))
+            if(TRUE == ApiMiscCompare(p_ee_var->p_u8_ram, 0xFF, p_ee_var->u16_len))
             {
                 memset(p_ee_var->p_u8_ram, (UINT8)p_ee_var->u32_initdata, p_ee_var->u16_len);
             }
@@ -198,7 +198,7 @@ UINT16 Mem_EE_SearchIndex(UINT32 u32_id)
  * Return:  none
  * Author:  2021/06/07, feifei.xu create this function
  ****************************************************************************/
-BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_Offset,UINT16 u16_len)
+BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_len)
 {
     BOOL b_reg = FALSE;
     UINT16 u16_index = 0;
@@ -219,7 +219,7 @@ BOOL Mem_EE_Read(UINT32 u32_id,UINT8* u8_data,UINT16 u16_Offset,UINT16 u16_len)
         }
         else
         {
-            memcpy(u8_data,(p_ee_var->p_u8_ram+u16_Offset),u16_len);
+            memcpy(u8_data,p_ee_var->p_u8_ram,u16_len);
             // ApiLogPrint(_LOG_DEBUG,"eeprom read id:%d\n",p_ee_var->u32_id);
             b_reg = TRUE;
         }

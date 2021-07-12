@@ -30,6 +30,7 @@
 #define FLASH_HALF_DATA_LEN 		(FLASH_BLOCK_LEN/2)
 #define FLASH_WORD_DATA_LEN 		(FLASH_BLOCK_LEN/4)
 
+#define FLASH_PAGE_sIZE (0X400)
 /*****************************************************************************
 ** typedef
 *****************************************************************************/
@@ -73,6 +74,37 @@ void Ecu_Flash_ErasePage(UINT32 u32_addr)
 	return TRUE;
 }
 
+/****************************************************************************/
+/**
+ * Function Name: ApiFlashErasePage
+ * Description: 擦除一段FLASH空间
+ *
+ * Param:   first_addr：开始擦除的地址
+ * 			last_addr：擦除结束的地址
+ * Return:  TRUE：擦除成功，FALSE：擦除失败
+ * Author:  2021/07/12, feifei.xu create this function
+ ****************************************************************************/
+BOOL ApiFlashErasePage(UINT32 first_addr, UINT32 last_addr)
+{
+	UINT16 u16_i = 0;
+	UINT16 u16_index = 0;
+
+	if( (0x00 != (first_addr%FLASH_PAGE_sIZE)) 
+	 && (0x00 != (last_addr%FLASH_PAGE_sIZE))
+	 && (last_addr > first_addr))
+	{
+		return FALSE;
+	}
+
+	u16_index = ((last_addr - first_addr) / 0x400);
+
+	for(u16_i = 0; u16_i < u16_index; u16_i++)
+	{
+		FLASH_Wipe_Configuration_RAM(FLASH_WIPE_CODE_PAGE,first_addr+u16_i*FLASH_PAGE_sIZE);
+	}
+
+	return TRUE;
+}
 /****************************************************************************/
 /**
  * Function Name: Ecu_Flash_WriteByte
