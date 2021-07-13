@@ -35,7 +35,7 @@
 // #include "delay.h"
 #include "bl_app.h"
 #include "mem_ee.h"
-#include "bl_config_pc.h"//TODO:
+#include "bl_config_pc.h"
 
 /*---------------------------------------------------------------------------*/
 /* 类型定义                                                                  */
@@ -119,13 +119,14 @@ Timer_e ApiLlTimer(void)
 
 	// i = TAUB0.CNT0;
 	// do
-	// { 														 
-	// 	if(((UINT16)(TAUB0.CNT0 - u16Cnt)) < 32768u)	  
-	// 	{													
-	// 		u16Cnt += TIMER_CLOCK_KHZ; 				 
-	// 		return(expired);									
-	// 	}														 
-	// 	return(not_expired);									 
+	// { 	
+		delayms(1);													 
+		// if(((UINT16)(TAUB0.CNT0 - u16Cnt)) < 32768u)	  
+		// {													
+			// u16Cnt += TIMER_CLOCK_KHZ; 				 
+			return(expired);									
+		// }														 
+		// return(not_expired);									 
 	// }while(0);//TODO:
 }
 
@@ -198,13 +199,13 @@ void ApiLlEcuInit(void)
 	// ApiWdtHwtEnable();
 
    	// s32Ret = ApiDflashInit();            /*dflash初始化TODO:*/
-	if (s32Ret == ERROR)
-	{
-		ApiLogPrint(_LOG_CRITICAL, "BspInit:eepIniErr\n");
-		delayms(2);
-	    ApiLogProcess();
-	}
-	else
+	// if (s32Ret == ERROR)
+	// {
+	// 	ApiLogPrint(_LOG_CRITICAL, "BspInit:eepIniErr\n");
+	// 	delayms(2);
+	//     ApiLogProcess();
+	// }
+	// else
 	{
 		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8InitData[0]);
 		if(s32Ret == FALSE)
@@ -237,6 +238,7 @@ UINT32 ApiLlGetSecuritySeed(UINT32 u32OldSeed)
         tSemaphores.bSaFirstSeed = FALSE;
         /* Get a random number from somewhere */
         // u32Seed = ( (UINT32) ((TAUB0.CNT0 & 0x1234) | (TAUB0.CNT0 << 8)) );//TODO:定时器
+		u32Seed=rand();
     }
     else
     {
@@ -277,7 +279,7 @@ void ApiLlFill(UINT8 *pu8Dst, UINT8 u8Value, UINT16 u16Count)
 ******************************************************************************/
 void ApiLlApplicationPrestart(void)
 {
-//    (void)ApiTimerTaubStop();//TODO:定时器
+   (void)ApiTimerTaubStop();//TODO:定时器
 }
 
 
@@ -357,10 +359,10 @@ BOOL ApiLlMpuPowerOn(void)
 ******************************************************************************/
 void ApiSetResetSource(void)
 {
-    // UINT16 u16ResetSource;
-    // UINT8 u8ResetSourceDid[4];
+    UINT16 u16ResetSource;
+    UINT8 u8ResetSourceDid[4];
 
-    // /* get stored reset source - do not handle read error */
+    /* get stored reset source - do not handle read error */
 
 	// (void)ApiNvramReadSyncInd(0x0008,2,0,&u8ResetSourceDid[0]);
 

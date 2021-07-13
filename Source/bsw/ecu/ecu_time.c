@@ -172,6 +172,20 @@ static void Ecu_GeneralTime_Configure(TIME_CFG_S* p_time_cfg)
 	INT_Interrupt_Enable(p_time_cfg->Peripheral,TRUE);											//外设中断使能
 	INT_Clear_Interrupt_Flag(p_time_cfg->Peripheral);											//清中断标志
 }
+void ApiTimerTaubStop(void)
+{
+    GPTIM_Set_Period(s_c_st_time0.GPTIMx, 0);
+    GPTIM_Cmd(s_c_st_time0.GPTIMx,FALSE);
+    GPTIM_Set_Period(s_c_st_time1.GPTIMx, 0);
+    GPTIM_Cmd(s_c_st_time1.GPTIMx,FALSE);
+    GPTIM_Set_Period(s_c_st_time2.GPTIMx, 0);
+    GPTIM_Cmd(s_c_st_time2.GPTIMx,FALSE);
+    GPTIM_Set_Period(s_c_st_time3.GPTIMx, 0);
+    GPTIM_Cmd(s_c_st_time3.GPTIMx,FALSE);
+    GPTIM_Set_Period(s_c_st_time4.GPTIMx, 0);
+    GPTIM_Cmd(s_c_st_time4.GPTIMx,FALSE);
+
+}
 /****************************************************************************/
 /**
  * Function Name: Ecu_GeneralTime_Start

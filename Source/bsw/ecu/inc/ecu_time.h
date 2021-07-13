@@ -70,6 +70,7 @@ void ApiGeneralTime2Init(void);
 void ApiGeneralTime3Init(void);
 void ApiGeneralTime4Init(void);
 INT32 ApiTimerRegistTimer(uint32_t u32t_Prd,ECU_IOD_TIMER_CALLBACK fp_callback);
+void ApiTimerTaubStop(void);
 /*****************************************************************************
 ** other
 *****************************************************************************/

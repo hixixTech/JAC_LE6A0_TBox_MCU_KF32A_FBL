@@ -24,10 +24,10 @@
 /*****************************************************************************
 ** #define
 *****************************************************************************/
-#define EEPROM_BASIC_ADDR       ((UINT32)(0x00073000))                  //EE 起始地址
+#define EEPROM_BASIC_ADDR       ((UINT32)(0x00020000))                  //EE 起始地址
 #define EEPROM_PAGE_SIZE        (0x400)                                 //页大小
-#define EEPROM_PAGE_NUM         (25u)                                   //页数量
-#define EEPRON_MAX_SIZE         (EEPROM_PAGE_SIZE * EEPROM_PAGE_NUM)    //EE空间大小   
+#define EEPROM_PAGE_NUM         (8u)                                   //页数量
+#define EEPRON_MAX_SIZE         (EEPROM_PAGE_SIZE * EEPROM_PAGE_NUM)    //EE空间大小
 
 #define EEPROM_WRITE_BYTE_MAX   (1024)
 

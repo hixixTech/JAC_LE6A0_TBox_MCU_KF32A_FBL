@@ -29,7 +29,7 @@
 #include "bl_timer.h"
 #include "bl_mem.h"
 // #include "mcu_drv_wdg.h"
-
+extern JumpToApp();
 
 /*---------------------------------------------------------------------------*/
 /* 类型定义                                                                  */
@@ -162,21 +162,26 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 		if(FALSE == s32Result)
 		{
 			ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8Fill[0]);
+            
 			// ApiCanDeinit();
 			ApiWdtSwtFeedDog();         /*周期喂狗*/
 			ApiWdtHwtFeedDog();
 			ApiLlApplicationPrestart();                                 /*关闭taub*/
-			// asm("mov 0x00038000,r7 ");
+			JumpToApp();
+            // asm("mov 0x00038000,r7 ");
 			// asm( "jmp [r7]" );
 		}
 
 		/* check stored integrity, compatibility */
-		if ( (s32Result == OK) && ( (0x01 == u8AppCheck[3]) || (0xff == u8AppCheck[3]) ) )  /*后续改为宏，如果检验通过或者数据是全ff则跳app*/
+		if ( (s32Result == TRUE) && ( (0x01 == u8AppCheck[3]) || (0xff == u8AppCheck[3]) ) )  /*后续改为宏，如果检验通过或者数据是全ff则跳app*/
 		{	
 			// ApiCanDeinit();
 			ApiWdtSwtFeedDog();         /*周期喂狗*/
 			ApiWdtHwtFeedDog();
 			ApiLlApplicationPrestart();
+            JumpToApp();
+            ApiLogPrint(0,"about to jump！!\n");
+            ApiLogProcess();
 			// asm("mov 0x00038000,r7 ");   /*后续改为宏LL_TARGET_SPECIFIC_JUMP*/
 			// asm( "jmp [r7]" );
 		}

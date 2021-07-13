@@ -104,7 +104,7 @@ GnssAntState_e ApiLteGetGnssAntSt(void)
     GnssAntState_e eGnssAntState     = GNSS_ANT_ST_NORMAL;
     INT32          i32GnssAntVolRead = 0;
     
-    i32GnssAntVolRead = ApiAdcVoltRead(ADC1_INPUT);//TODO:
+    i32GnssAntVolRead = ApiAdcVoltRead(ADC1_INPUT);
 
     if((i32GnssAntVolRead <= GNSSANT_VOL_NORMAL_MAX)&&(i32GnssAntVolRead >= GNSSANT_VOL_NORMAL_MIN))
     {

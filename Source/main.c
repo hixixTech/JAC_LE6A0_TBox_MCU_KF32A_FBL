@@ -71,7 +71,7 @@ static void InitializeTimers(void);
  * Author:  create this function
  ****************************************************************************/
 
-static void JumpToApp()
+void JumpToApp()
 {
 	if(*(volatile uint32_t*)APP_ADDRESS == 0x10020000 ) //判断APP空间的首个字内容是否为栈顶地址0x10020000，正确则说明APP程序已经写入
 	{
@@ -157,9 +157,9 @@ void main(void)
         ApiDlDiagnosticFgTask();          /*处理can报文信息*/
         ApiDlDiagnosticBgTask();
         ApiTickTimers();
-		// ApiWdtSwtFeedDog();         /*周期喂狗*/
-		// ApiWdtHwtFeedDog();
-        JumpToApp();//TEST
+		ApiWdtSwtFeedDog();         /*周期喂狗*/
+		ApiWdtHwtFeedDog();
+        // JumpToApp();//TEST
         if (tSemaphores.bProgrammingSession == false)  /*如果不是刷新会话，进行校验*/
         {
             ApiApplicationStart();
