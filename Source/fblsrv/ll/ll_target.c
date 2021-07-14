@@ -173,7 +173,6 @@ void ApiLlEcuInit(void)
 	
 	bsw_init();
 	app_init();
-	Mem_EE_Init();
 	
 	ApiLogPrint(_LOG_DEBUG,"FBL Main init complete!\n");
 

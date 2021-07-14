@@ -14,12 +14,14 @@
 /*---------------------------------------------------------------------------*/
 /* Í·ÎÄ¼þ                                                                       */
 /*---------------------------------------------------------------------------*/
+#include "system_init.h"
 #include "ll_can.h"
 #include "ll_target.h"
 #include "ecu_can.h"
 #include "dl_engine.h"
 #include "spp_generated.h"
 #include "spp_main.h"
+
 
 
 /* NSJW limit values */
@@ -437,10 +439,10 @@ bool ApilLlIsTxEmpty(void)
 {
 	UINT16 u16Timeout = 0xfff; 
 	//TODO:
-	// while( ApiCan1TxState() && (u16Timeout != 0) )
-	// {
-	// 	--u16Timeout;
-	// }
+	while( (0 == CAN_Get_Transmit_Status(CAN1_SFR,CAN_TX_STATUS)) && (u16Timeout != 0) )
+	{
+		--u16Timeout;
+	}
 	
 	return (true);
 }
