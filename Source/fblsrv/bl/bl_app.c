@@ -191,7 +191,7 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 		{
             /* application is invalid (integrity on compatibility error) */
 			// ApiWdtSwtFeedDog();         /*周期喂狗*/
-            ApiLogPrint(0,"FBL:CAN NOT jump！!\n");
+            ApiLogPrint(0,"FBL:CAN NOT jump！!u8AppCheck[3]=%d\n",u8AppCheck[3]);
 			gu8InvalidateFlag = 1;
 			ApiStopTimer(startup_timer_handle);
 		}

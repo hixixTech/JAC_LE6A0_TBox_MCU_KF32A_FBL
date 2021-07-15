@@ -58,7 +58,7 @@
 #define EEPROM_PAGE_22          (EEPROM_PAGE_21 + 1)
 #define EEPROM_PAGE_23          (EEPROM_PAGE_22 + 1)
 #define EEPROM_PAGE_24          (EEPROM_PAGE_23 + 1)
-#define EEPROM_PAGE_MAX         (EEPROM_PAGE_24 + 1)
+#define EEPROM_PAGE_MAX         (EEPROM_PAGE_9 + 1)
 
 #define EEPROM_HEAD_SIZE        (EEPROM_PAGE_MAX * EEPROM_BLOCK_SIZE)
 #define EEPROM_PAGE_BYTE_NUM    (EEPROM_PAGE_SIZE - EEPROM_BLOCK_SIZE)
@@ -308,6 +308,7 @@ void Mem_EED_PageHeadInit(void)
 
     s_st_pagenwm.backpage0.u32_addr = Mem_EED_GetFreeAddr();
     s_st_pagenwm.backpage1.u32_addr = Mem_EED_GetFreeAddr();
+    ApiLogPrint(0,"FBL:backpage0:%d,backpage1:%d\n",s_st_pagenwm.backpage0.u32_addr,s_st_pagenwm.backpage1.u32_addr);
 }
 /****************************************************************************/
 /**
