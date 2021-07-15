@@ -162,7 +162,7 @@ static void Mem_EE_DataInit(void)
         }
         else
         {
-            ApiLogPrint(_LOG_DEBUG,"eeprom init finish!\n");
+            ApiLogPrint(_LOG_DEBUG,"FBL:eeprom init finish!\n");
             s_b_MemE2DataInitDone = TRUE;
         }
     }

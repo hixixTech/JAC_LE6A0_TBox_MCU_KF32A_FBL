@@ -1,18 +1,18 @@
 /*****************************************************************************/
 /* Copyright (C), 2019, DIAS Automotive Electronic Systems Co; Ltd.          */
 /* File Name:    main.c                                                      */
-/* Description:  Ö÷º¯ÊıÈë¿Ú                                                       */
+/* Description:  ä¸»å‡½æ•°å…¥å£                                                       */
 /*                                                                           */
 /* Others:       Implementation of main function of the Bootloader Layer     */
 /*                                                                           */
 /* Processor:    RH850F1L                                                    */
 /* Compiler:     GHS_201517                                                  */
-/********************************** ĞŞ¸ÄÀúÊ· *********************************/
+/********************************** ä¿®æ”¹å†å² *********************************/
 /* Date            Version       Author      Description                     */
-/* 2019-07-05   V11.01.01.01.00  ³Â»İ            »ùÏß´´½¨                          */
+/* 2019-07-05   V11.01.01.01.00  é™ˆæƒ             åŸºçº¿åˆ›å»º                          */
 /*****************************************************************************/
 /*---------------------------------------------------------------------------*/
-/* Í·ÎÄ¼ş                                                                       */
+/* å¤´æ–‡ä»¶                                                                       */
 /*---------------------------------------------------------------------------*/
 #include "system_init.h"
 #include "bl_config_pc.h"
@@ -30,33 +30,33 @@
 
 #include "os_log.h"
 /*---------------------------------------------------------------------------*/
-/* ÀàĞÍ¶¨Òå                                                                  */
+/* ç±»å‹å®šä¹‰                                                                  */
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
-/* ºê¶¨Òå                                                                    */
+/* å®å®šä¹‰                                                                    */
 /*---------------------------------------------------------------------------*/
-#define APP_ADDRESS (0x38000)
+#define APP_ADDRESS (0x1A800)
 
 /*---------------------------------------------------------------------------*/
-/* ³£Á¿¶¨Òå                                                                  */
+/* å¸¸é‡å®šä¹‰                                                                  */
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
-/* ±äÁ¿¶¨Òå                                                                  */
+/* å˜é‡å®šä¹‰                                                                  */
 /*---------------------------------------------------------------------------*/
 static BOOL bJudgeMpuFlag = 0;
 
 
-typedef  void (*pFunction)(void); //¶¨Òåvoidº¯ÊıÖ¸ÕëÀàĞÍ£¬
-pFunction Jump_To_Application; //Ëü¿ÉÒÔ½ÓÊÜÈÎºÎÀàĞÍº¯ÊıµÄ¸³Öµ
+typedef  void (*pFunction)(void); //å®šä¹‰voidå‡½æ•°æŒ‡é’ˆç±»å‹ï¼Œ
+pFunction Jump_To_Application; //å®ƒå¯ä»¥æ¥å—ä»»ä½•ç±»å‹å‡½æ•°çš„èµ‹å€¼
 uint32_t JumpAddress;
 /*---------------------------------------------------------------------------*/
-/* Íâ²¿²ÎÕÕ±äÁ¿                                                              */
+/* å¤–éƒ¨å‚ç…§å˜é‡                                                              */
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
-/* ÄÚ²¿º¯ÊıÉùÃ÷                                                              */
+/* å†…éƒ¨å‡½æ•°å£°æ˜                                                              */
 /*---------------------------------------------------------------------------*/
 static void GlobalInit(void);
 static void InitializeTimers(void);
@@ -73,32 +73,32 @@ static void InitializeTimers(void);
 
 void JumpToApp()
 {
-	if(*(volatile uint32_t*)APP_ADDRESS == 0x10020000 ) //ÅĞ¶ÏAPP¿Õ¼äµÄÊ×¸ö×ÖÄÚÈİÊÇ·ñÎªÕ»¶¥µØÖ·0x10020000£¬ÕıÈ·ÔòËµÃ÷APP³ÌĞòÒÑ¾­Ğ´Èë
+	if(*(volatile uint32_t*)APP_ADDRESS == 0x10020000 ) //åˆ¤æ–­APPç©ºé—´çš„é¦–ä¸ªå­—å†…å®¹æ˜¯å¦ä¸ºæ ˆé¡¶åœ°å€0x10020000ï¼Œæ­£ç¡®åˆ™è¯´æ˜APPç¨‹åºå·²ç»å†™å…¥
 	{
-	SYS_VECTOFF = APP_ADDRESS ; //ÉèÖÃÏòÁ¿±íÆ«ÒÆÖµ£¬¼´ÖØÓ³ÉäÏòÁ¿±í£¬Õâ¶ÔÖĞ¶Ï·şÎñº¯ÊıÕıÈ·Ö´ĞĞÖÁ¹ØÖØÒª
-	JumpAddress = *(volatile uint32_t*) (APP_ADDRESS + 4); //»ñÈ¡APPµÄstartup()Èë¿ÚµØÖ·
-	Jump_To_Application = (pFunction) JumpAddress; //½«startup()Èë¿ÚµØÖ·¸³Öµ¸øº¯ÊıÖ¸Õë
+	SYS_VECTOFF = APP_ADDRESS ; //è®¾ç½®å‘é‡è¡¨åç§»å€¼ï¼Œå³é‡æ˜ å°„å‘é‡è¡¨ï¼Œè¿™å¯¹ä¸­æ–­æœåŠ¡å‡½æ•°æ­£ç¡®æ‰§è¡Œè‡³å…³é‡è¦
+	JumpAddress = *(volatile uint32_t*) (APP_ADDRESS + 4); //è·å–APPçš„startup()å…¥å£åœ°å€
+	Jump_To_Application = (pFunction) JumpAddress; //å°†startup()å…¥å£åœ°å€èµ‹å€¼ç»™å‡½æ•°æŒ‡é’ˆ
 	
-	Jump_To_Application(); //Ê¹ÓÃĞÂµÄº¯ÊıÖ¸Õë£¬×ªÏòÖ´ĞĞAPPµÄstartup()º¯Êı£¬Õâ½«µ¼ÖÂAPP³ÌĞòÆô¶¯
+	Jump_To_Application(); //ä½¿ç”¨æ–°çš„å‡½æ•°æŒ‡é’ˆï¼Œè½¬å‘æ‰§è¡ŒAPPçš„startup()å‡½æ•°ï¼Œè¿™å°†å¯¼è‡´APPç¨‹åºå¯åŠ¨
 	}
 }
 /******************************************************************************
 *  function name | GlobalInit
-*  content       | ³õÊ¼»¯BSPµÈ
-*  parameter     | ÎŞ
-*  return        | ÎŞ
-*  notice        | ÎŞ
+*  content       | åˆå§‹åŒ–BSPç­‰
+*  parameter     | æ— 
+*  return        | æ— 
+*  notice        | æ— 
 ******************************************************************************/
 static void GlobalInit(void)
 {
-    ApiLlFill((UINT8 *)&tSemaphores,0, (UINT16)sizeof(Semaphore_t)); /*½«·şÎñĞÅºÅÁ¿È«²¿ÇåÁã*/
+    ApiLlFill((UINT8 *)&tSemaphores,0, (UINT16)sizeof(Semaphore_t)); /*å°†æœåŠ¡ä¿¡å·é‡å…¨éƒ¨æ¸…é›¶*/
 
-    tSemaphores.bLocked = true;                       /*ËøĞÅºÅÁ¿ÖÃÎªtrue*/
-    tSemaphores.bSaFirstSeed = true;                 /*saÃÜÔ¿µÚÒ»´Î½»»»ĞÅºÅÁ¿ÖÃÎªtrue*/
+    tSemaphores.bLocked = true;                       /*é”ä¿¡å·é‡ç½®ä¸ºtrue*/
+    tSemaphores.bSaFirstSeed = true;                 /*saå¯†é’¥ç¬¬ä¸€æ¬¡äº¤æ¢ä¿¡å·é‡ç½®ä¸ºtrue*/
 
     ApiLlEcuInit();
 
-	// (void)ApiCanInit();  /*³õÊ¼»¯can*/
+	// (void)ApiCanInit();  /*åˆå§‹åŒ–can*/
 
 	(void)SppInitForAll();
 	// (void)SPP_Add_DCPD_MSG_TO_MCU_FOTA_FBL_COM_Event_Listener(ApilLlFblFotaComMsgCb);
@@ -107,16 +107,16 @@ static void GlobalInit(void)
 	SppInit(SPP_CONNECT_TYPE_MCU_4G);
     // (void)SPP_Start();
 
-	// __EI();   /*ÔİÊ±´ò¿ªÖĞ¶Ï£¬ºóĞøµÈcan±¨ÎÄ¸ÄÎª²éÑ¯Ê±¹Ø±Õ*/
+	// __EI();   /*æš‚æ—¶æ‰“å¼€ä¸­æ–­ï¼Œåç»­ç­‰canæŠ¥æ–‡æ”¹ä¸ºæŸ¥è¯¢æ—¶å…³é—­*/
 }
 
 
 /******************************************************************************
 *  function name | InitializeTimers
 *  content       | main initialization function for the timers
-*  parameter     | ÎŞ
-*  return        | ÎŞ
-*  notice        | ÎŞ
+*  parameter     | æ— 
+*  return        | æ— 
+*  notice        | æ— 
 ******************************************************************************/
 static void InitializeTimers(void)                  
 {
@@ -133,19 +133,19 @@ static void InitializeTimers(void)
 
 
 /*---------------------------------------------------------------------------*/
-/* Íâ²¿º¯Êı¶¨Òå                                                              */
+/* å¤–éƒ¨å‡½æ•°å®šä¹‰                                                              */
 /*---------------------------------------------------------------------------*/
 /******************************************************************************
 *  function name | main
-*  content       | ³õÊ¼»¯BSP¡¢OS£¬´´½¨Æô¶¯ÈÎÎñ£¬¿ªÆô²Ù×÷ÏµÍ³
-*  parameter     | ÎŞ
-*  return        | ÎŞ
-*  notice        | ÎŞ
+*  content       | åˆå§‹åŒ–BSPã€OSï¼Œåˆ›å»ºå¯åŠ¨ä»»åŠ¡ï¼Œå¼€å¯æ“ä½œç³»ç»Ÿ
+*  parameter     | æ— 
+*  return        | æ— 
+*  notice        | æ— 
 ******************************************************************************/
 void main(void)
 {
     /*** init ***/
-    GlobalInit();              /*Ó²¼ş³õÊ¼»¯*/
+    GlobalInit();              /*ç¡¬ä»¶åˆå§‹åŒ–*/
 
     InitializeTimers();
     /*switch to programming session if the application set the flag */
@@ -153,14 +153,15 @@ void main(void)
 
     for (;;)
     {
+        ApiLogProcess();
     	SppMainTask(SPP_CONNECT_TYPE_MCU_4G);
-        ApiDlDiagnosticFgTask();          /*´¦Àícan±¨ÎÄĞÅÏ¢*/
+        ApiDlDiagnosticFgTask();          /*å¤„ç†canæŠ¥æ–‡ä¿¡æ¯*/
         ApiDlDiagnosticBgTask();
         ApiTickTimers();
-		ApiWdtSwtFeedDog();         /*ÖÜÆÚÎ¹¹·*/
+		ApiWdtSwtFeedDog();         /*å‘¨æœŸå–‚ç‹—*/
 		ApiWdtHwtFeedDog();
         // JumpToApp();//TEST
-        if (tSemaphores.bProgrammingSession == false)  /*Èç¹û²»ÊÇË¢ĞÂ»á»°£¬½øĞĞĞ£Ñé*/
+        if (tSemaphores.bProgrammingSession == false)  /*å¦‚æœä¸æ˜¯åˆ·æ–°ä¼šè¯ï¼Œè¿›è¡Œæ ¡éªŒ*/
         {
             ApiApplicationStart();
         }

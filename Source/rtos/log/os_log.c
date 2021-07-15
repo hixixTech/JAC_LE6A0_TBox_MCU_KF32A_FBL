@@ -325,6 +325,7 @@ void ApiLogProcess(void)
         }
 
     }
+    ApiUsartHandler10ms();
 //   LOG_MPULOG_Process();
 
 }

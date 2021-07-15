@@ -2008,7 +2008,7 @@ VOID SppHeartManage(SppConnectType_e eConnectType)
         else if(gatHeartSend[(UINT8)u8_indexcon].u8RecFirstAckFlg == 1)
         {
             gatSppConnStatus[(UINT8)u8_indexcon].eConnStatus = SPP_STATE_INIT;
-            ApiLogPrint(_LOG_ENTRY, "-===init==\n");
+            ApiLogPrint(_LOG_ENTRY, "FBL:-===init==\n");
         }
 		else 
 		{
@@ -2021,7 +2021,7 @@ VOID SppHeartManage(SppConnectType_e eConnectType)
         {
             gatHeartSend[(UINT8)u8_indexcon].u8RecFirstAckFlg = 1;
         }
-        ApiLogPrint(_LOG_TRACE, "==heart===\n");
+        ApiLogPrint(_LOG_TRACE, "FBL:==heart===\n");
 	}
 }
 

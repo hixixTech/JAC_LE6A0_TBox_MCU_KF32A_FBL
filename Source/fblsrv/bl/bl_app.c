@@ -164,8 +164,9 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 			ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8Fill[0]);
             
 			// ApiCanDeinit();
-			ApiWdtSwtFeedDog();         /*周期喂狗*/
-			ApiWdtHwtFeedDog();
+			// ApiWdtSwtFeedDog();         /*周期喂狗*/
+			// ApiWdtHwtFeedDog();
+            ApiLogPrint(0,"FBL:READ FLHVLD FAIL！!\n");
 			ApiLlApplicationPrestart();                                 /*关闭taub*/
 			JumpToApp();
             // asm("mov 0x00038000,r7 ");
@@ -176,19 +177,21 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 		if ( (s32Result == TRUE) && ( (0x01 == u8AppCheck[3]) || (0xff == u8AppCheck[3]) ) )  /*后续改为宏，如果检验通过或者数据是全ff则跳app*/
 		{	
 			// ApiCanDeinit();
-			ApiWdtSwtFeedDog();         /*周期喂狗*/
-			ApiWdtHwtFeedDog();
+			// ApiWdtSwtFeedDog();         /*周期喂狗*/
+			// ApiWdtHwtFeedDog();
 			ApiLlApplicationPrestart();
-            JumpToApp();
-            ApiLogPrint(0,"about to jump！!\n");
+            
+            ApiLogPrint(0,"FBL:about to jump！!\n");
             ApiLogProcess();
+            JumpToApp();
 			// asm("mov 0x00038000,r7 ");   /*后续改为宏LL_TARGET_SPECIFIC_JUMP*/
 			// asm( "jmp [r7]" );
 		}
 		else
 		{
             /* application is invalid (integrity on compatibility error) */
-			ApiWdtSwtFeedDog();         /*周期喂狗*/
+			// ApiWdtSwtFeedDog();         /*周期喂狗*/
+            ApiLogPrint(0,"FBL:CAN NOT jump！!\n");
 			gu8InvalidateFlag = 1;
 			ApiStopTimer(startup_timer_handle);
 		}
