@@ -218,5 +218,5 @@ bool ApiDlDscEnterProgSession(UINT8 u8ResSuppress)
 		bRetValue = true;
 	}
     
-    return bRetValue;
+    return true;//bRetValue;
 }

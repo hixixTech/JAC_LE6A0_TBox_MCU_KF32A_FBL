@@ -51,7 +51,7 @@
                                                                 \
     }while(0)
 
-#define START_TABLE_ADDR_APP      (0x00038000uL)       /*APP的起始地址*/
+#define START_TABLE_ADDR_APP      (0x0001A800uL)       /*APP的起始地址*/
 #define START_TABLE_ADDR_EOL      (0x00018000uL)       /*EOL的起始地址*/
 #define END_TABLE_ADDR_APP        (0x00080000uL)       /*APP的结束地址*/
 

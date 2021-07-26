@@ -91,18 +91,17 @@ void bsw_init(void)
 	(void)ApiGpioOutputLow(GPIO_CAN0_STB);
 	(void)ApiGpioOutputLow(GPIO_CAN1_STB);
 	(void)ApiGpioOutputLow(GPIO_CAN2_STB);
-	(void)ApiGpioOutputHigh(GPIO_MCUSW_EN);
-    (void)ApiGpioOutputHigh(GPIO_NMBAT_CHRG);
-    (void)ApiGpioOutputHigh(GPIO_BAT_DET_CTL);
-    (void)ApiGpioOutputHigh(GPIO_AUX_BOX_MUTE);
-    (void)ApiGpioOutputHigh(GPIO_SPK_BOX_MUTE);
-    (void)ApiGpioOutputHigh(GPIO_SOSLED_CTL);
-    (void)ApiGpioOutputHigh(GPIO_CODEC_EN);
-    (void)ApiGpioOutputHigh(GPIO_4G_VBUS_CNTL);
-    (void)ApiGpioOutputHigh(GPIO_GSENSOR_EN);
-    (void)ApiGpioOutputHigh(GPIO_DIV8_EN);
-    (void)ApiGpioOutputHigh(GPIO_MIC_EN);
-	(void)ApiGpioOutputHigh(GPIO_PWR_CTL_4G);
+	// (void)ApiGpioOutputHigh(GPIO_MCUSW_EN);
+    // (void)ApiGpioOutputHigh(GPIO_NMBAT_CHRG);
+    // (void)ApiGpioOutputHigh(GPIO_BAT_DET_CTL);
+    // (void)ApiGpioOutputHigh(GPIO_AUX_BOX_MUTE);
+    // (void)ApiGpioOutputHigh(GPIO_SPK_BOX_MUTE);
+    // (void)ApiGpioOutputHigh(GPIO_SOSLED_CTL);
+    // (void)ApiGpioOutputHigh(GPIO_CODEC_EN);
+    // (void)ApiGpioOutputHigh(GPIO_4G_VBUS_CNTL);
+    // (void)ApiGpioOutputHigh(GPIO_GSENSOR_EN);
+    // (void)ApiGpioOutputHigh(GPIO_DIV8_EN);
+    // (void)ApiGpioOutputHigh(GPIO_MIC_EN);
 }
 /*****************************************************************************
 

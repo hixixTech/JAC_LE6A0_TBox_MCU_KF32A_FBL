@@ -318,14 +318,18 @@ void ApiUsartMpuIntDiable(void)
  ****************************************************************************/
 void ApiUsartHandler10ms(void)
 {
+	#define	DELAY_CNT	(0xFFF)
+
 	UINT16 u16_i = 0;
 	UINT16 u16_count = 0;
+	UINT16 u16_delay_cnt = 0;
 
 	u16_count = s_debug_var.u16_tx_len;
 	for(u16_i = 0; u16_i < u16_count; u16_i++)
 	{
 		USART_SendData(s_c_debug_cfg.USARTx,s_debug_var.u8_tx_buff[u16_i]);
-		while(!USART_Get_Transmitter_Empty_Flag(s_c_debug_cfg.USARTx));
+		u16_delay_cnt = (UINT16)DELAY_CNT;
+		while((u16_delay_cnt--) && (!USART_Get_Transmitter_Empty_Flag(s_c_debug_cfg.USARTx)));
 	}
 	memset(s_debug_var.u8_tx_buff,0x00,u16_count);
 	s_debug_var.u16_tx_len = s_debug_var.u16_tx_len - u16_count;
@@ -334,7 +338,8 @@ void ApiUsartHandler10ms(void)
 	for(u16_i = 0; u16_i <u16_count; u16_i++)
 	{
 		USART_SendData(s_c_ble_cfg.USARTx,s_ble_var.u8_tx_buff[u16_i]);
-		while(!USART_Get_Transmitter_Empty_Flag(s_c_ble_cfg.USARTx));
+		u16_delay_cnt = (UINT16)DELAY_CNT;
+		while((u16_delay_cnt--) && (!USART_Get_Transmitter_Empty_Flag(s_c_ble_cfg.USARTx)));
 	}
 	memset(s_ble_var.u8_tx_buff,0x00,u16_count);
 	s_ble_var.u16_tx_len = s_ble_var.u16_tx_len - u16_count;
@@ -343,10 +348,12 @@ void ApiUsartHandler10ms(void)
 	for(u16_i = 0; u16_i <u16_count; u16_i++)
 	{
 		USART_SendData(s_c_mpu_cfg.USARTx,s_mpu_var.u8_tx_buff[u16_i]);
-		while(!USART_Get_Transmitter_Empty_Flag(s_c_mpu_cfg.USARTx));
+		u16_delay_cnt = (UINT16)DELAY_CNT;
+		while((u16_delay_cnt--) && (!USART_Get_Transmitter_Empty_Flag(s_c_mpu_cfg.USARTx)));
 	}
 	memset(s_mpu_var.u8_tx_buff,0x00,u16_count);
 	s_mpu_var.u16_tx_len = s_mpu_var.u16_tx_len - u16_count;
+
 
 	
 

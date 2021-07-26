@@ -44,7 +44,8 @@
 /*---------------------------------------------------------------------------*/
 /* 宏定义                                                                    */
 /*---------------------------------------------------------------------------*/
-
+#define APP_TASK_PRD_MS                       10U
+#define DIAS_PM_PERIOD_TIMER                        APP_TASK_PRD_MS
 /*---------------------------------------------------------------------------*/
 /* 常量定义                                                                  */
 /*---------------------------------------------------------------------------*/
@@ -84,7 +85,7 @@ static void PortInit(void)
 	// (void)ApiGpioOutput(GPIO_WKUP_4G);
 	(void)ApiGpioOutputHigh(GPIO_WKUP_4G);
 
-	// (void)ApiGpioInput(GPIO_4G_STATUS);
+	(void)ApiGpioInputRead(GPIO_4G_STATUS);
 }
 
 
@@ -172,11 +173,11 @@ void ApiLlEcuInit(void)
 	ApiLogEnable();
 	
 	bsw_init();
-	app_init();
+	// app_init();
 	
 	ApiLogPrint(_LOG_DEBUG,"FBL Main init complete!\n");
 
-	ApiLedControl(3,TRUE);//开3个灯，表示FBL状态
+	// ApiLedControl(3,TRUE);//开3个灯，表示FBL状态
 	
 	// ApiStbcGetResetWakeupFactor();   /*获取唤醒源*/
     // u32ResetFac = ApiStbcGetResetFactor();   /*获取唤醒源*/
@@ -205,13 +206,14 @@ void ApiLlEcuInit(void)
 	//     ApiLogProcess();
 	// }
 	// else
-	{
+	// {
 		s32Ret = ApiNvramReadSyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN,  &u8InitData[0]);
 		if(s32Ret == FALSE)
 		{
 			ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &u8InitData[0]);
 		}
-	}
+		ApiLogPrint(_LOG_DEBUG,"FBL EEPID_FLHVLD == %d,%d,%d,%d \n",u8InitData[0],u8InitData[1],u8InitData[2],u8InitData[3]);
+	// }
 
 	// (void)ApiWdtSwtInit();            /*内部狗使能*/
 	// ApiWdtSwtFeedDog();               /*喂狗*/
@@ -310,7 +312,12 @@ BatteryType_e ApiLlJudgeBatteryVoltage(void)
     }
 }
 
-
+typedef enum
+{
+    FSM_MPU_INIT = 0,
+    FSM_MPU_START,
+    FSM_MPU_END
+}FSM_MPU_CTRL_E;
 /******************************************************************************
 *  function name | ApiLlMpuPowerOn
 *  content       | 模组开机
@@ -320,32 +327,86 @@ BatteryType_e ApiLlJudgeBatteryVoltage(void)
 ******************************************************************************/
 BOOL ApiLlMpuPowerOn(void)
 {
+	// #define MPU_DELAY_CNT (1000 / DIAS_PM_PERIOD_TIMER)
 	static UINT8 u8Cnt = 0;
 	BOOL bRet = FALSE;
 
-	if(ApiGpioInputRead(GPIO_4G_STATUS) == 0)
+	if(SPP_STATE_INIT != ApiSPPGetState())
 	{
+        ApiLogPrint(_LOG_ENTRY, "ApiSPPGetState is %d!\n",ApiSPPGetState());
 		return TRUE;
 	}
 
 	if(0 == u8Cnt)
 	{
+        ApiLogPrint(_LOG_ENTRY, "ApiGpioOutputLow!\n");
 		(void)ApiGpioOutputLow(GPIO_PWR_CTL_4G);
 		ApiInitTimer(mpu_timer_handle,MPU_TO);
 		u8Cnt = 1;
 	}
 	else
 	{
+        ApiLogPrint(_LOG_ENTRY, "ApiGpioOutputHigh!\n");
 		(void)ApiGpioOutputHigh(GPIO_PWR_CTL_4G);
 		if(expired == ApiCheckTimer(mpu_timer_handle))
 		{
+            ApiLogPrint(_LOG_ENTRY, "ApiGpioOutputLow after Timer expired!\n");
 			(void)ApiGpioOutputLow(GPIO_PWR_CTL_4G);
 			ApiStopTimer(mpu_timer_handle);
 			u8Cnt = 0;
 			bRet = TRUE;
 		}
 	}
+    ApiLogPrint(_LOG_ENTRY, "ApiLlMpuPowerOn return value is %d!\n",bRet);
 	return bRet;
+	
+
+/*     static UINT16 u16_mpu_delay_cnt = 0;
+
+    static FSM_MPU_CTRL_E e_fsm_mpu_ctrl = FSM_MPU_INIT;
+
+	BOOL bRet = FALSE;
+
+    switch(e_fsm_mpu_ctrl)
+    {
+        case FSM_MPU_INIT:
+            u16_mpu_delay_cnt = MPU_DELAY_CNT;
+            e_fsm_mpu_ctrl = FSM_MPU_START;
+            break;
+
+        case FSM_MPU_START:
+            if(u16_mpu_delay_cnt > 0)
+            {
+                u16_mpu_delay_cnt--;
+            }
+            else
+            {
+                if(SPP_STATE_INIT == ApiSPPGetState())
+                {
+                    (void)ApiGpioOutputHigh(GPIO_PWR_CTL_4G);
+                }
+                u16_mpu_delay_cnt = MPU_DELAY_CNT;
+                e_fsm_mpu_ctrl = FSM_MPU_END;
+            }
+            break;
+        
+        case FSM_MPU_END:
+            if(u16_mpu_delay_cnt > 0)
+            {
+                u16_mpu_delay_cnt--;
+            }
+            else
+            {
+                (void)ApiGpioOutputLow(GPIO_PWR_CTL_4G);
+				bRet = TRUE;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+	return bRet; */
 }
 
 

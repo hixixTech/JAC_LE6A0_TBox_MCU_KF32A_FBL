@@ -60,7 +60,7 @@ uint32_t JumpAddress;
 /*---------------------------------------------------------------------------*/
 static void GlobalInit(void);
 static void InitializeTimers(void);
-
+static void DcpdSPPStatePrint(SppState_e SppStateCur, SppState_e SppStateLast);
 /****************************************************************************/
 /**
  * Function Name: JumpToApp
@@ -101,8 +101,8 @@ static void GlobalInit(void)
 	// (void)ApiCanInit();  /*初始化can*/
 
 	(void)SppInitForAll();
-	// (void)SPP_Add_DCPD_MSG_TO_MCU_FOTA_FBL_COM_Event_Listener(ApilLlFblFotaComMsgCb);
-    SppSetListener(SPP_CONNECT_TYPE_MCU_4G,SPP_USER_RECV_DCPD_MSG_TO_MCU_FOTA_FBL_COM_EVT, ApilLlFblFotaComMsgCb);
+	(void)SPP_Add_DCPD_MSG_TO_MCU_FOTA_FBL_COM_Event_Listener(ApilLlFblFotaComMsgCb);
+    // SppSetListener(SPP_CONNECT_TYPE_MCU_4G,SPP_USER_RECV_DCPD_MSG_TO_MCU_FOTA_FBL_COM_EVT, ApilLlFblFotaComMsgCb);
 	SppSetListener(SPP_CONNECT_TYPE_MCU_4G,0x10, ApilLlFblFotaOtherEcuCb);
 	SppInit(SPP_CONNECT_TYPE_MCU_4G);
     // (void)SPP_Start();
@@ -131,6 +131,42 @@ static void InitializeTimers(void)
     ApiStopTimer(NBs_timer_handle);
 }
 
+/******************************************************************************
+*  function name | Dcpd_SPPStatePrint
+*  content       | 当SPP状态发生切换时打印SPP状态
+*  parameter     | 
+*  return        | 
+*  notice        | 
+******************************************************************************/
+static void DcpdSPPStatePrint(SppState_e SppStateCur, SppState_e SppStateLast)
+{
+    if ( SppStateCur != SppStateLast)
+    {
+        switch (SppStateCur)
+        {
+            case SPP_STATE_INIT:
+                ApiLogPrint(_LOG_ENTRY, "SPP State is INIT\n");
+                break;
+            case SPP_STATE_WARNING:
+                ApiLogPrint(_LOG_ENTRY, "SPP State is WARNING\n");
+                break;     
+            case SPP_STATE_ERROR:
+                ApiLogPrint(_LOG_ENTRY, "SPP State is ERROR\n");
+                break;
+            case SPP_STATE_RUNNING:
+                ApiLogPrint(_LOG_ENTRY, "SPP State is RUNNING\n");
+                break;
+            case SPP_STATE_SLEEP:
+                ApiLogPrint(_LOG_ENTRY, "SPP State is SLEEP\n");
+                break;
+            case SPP_STATE_UNKNOW:
+                ApiLogPrint(_LOG_ENTRY, "SPP State is UNKNOW\n");
+                break;
+            default:
+                break;
+        }
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 /* 外部函数定义                                                              */
@@ -144,6 +180,8 @@ static void InitializeTimers(void)
 ******************************************************************************/
 void main(void)
 {
+    static SppState_e eLastSppState = SPP_STATE_UNKNOW;
+    SppState_e eSppState;
     /*** init ***/
     GlobalInit();              /*硬件初始化*/
 
@@ -153,13 +191,13 @@ void main(void)
 
     for (;;)
     {
-        ApiLogProcess();
     	SppMainTask(SPP_CONNECT_TYPE_MCU_4G);
         ApiDlDiagnosticFgTask();          /*处理can报文信息*/
         ApiDlDiagnosticBgTask();
         ApiTickTimers();
 		ApiWdtSwtFeedDog();         /*周期喂狗*/
 		ApiWdtHwtFeedDog();
+        ApiLogProcess();
         // JumpToApp();//TEST
         if (tSemaphores.bProgrammingSession == false)  /*如果不是刷新会话，进行校验*/
         {

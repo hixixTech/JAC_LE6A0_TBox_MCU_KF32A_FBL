@@ -74,6 +74,7 @@ static SPPErrorCode_e SppCheckConnectType(SppConnectType_e eConnectType)
 {
 	if((eConnectType < SPP_CONNECT_TYPE_MCU_4G) || (eConnectType > SPP_CONNECT_TYPE_MPU))
 	{
+        ApiLogPrint(LOG_ERR,"wrong eConnectType");
 		return SPP_FAILURE;
 	}
 	return SPP_SUCCESS;
@@ -905,6 +906,7 @@ static void SppAckProc(SppConnectType_e eConnectType)
 {
 	SppMemType_t * ptTmp=NULL;	
     SppMemType_t tFree;
+    UINT32 u32_time_out = 100;
 
 	ptTmp=SppGetAcklistByConnectType(eConnectType);	
 
@@ -912,8 +914,9 @@ static void SppAckProc(SppConnectType_e eConnectType)
 	{
 		return ;
 	}
-	while((ptTmp) != NULL)
+	while(((ptTmp) != NULL) && (u32_time_out > 0))
 	{ 	
+        u32_time_out--;
         if (ptTmp->u8SendTimes < SPP_SEND_TIMES_MAX)
         {
             if (ptTmp->u32TimeCout>=SPP_ACK_TIMEOUT_TIME)
@@ -979,6 +982,9 @@ static void SppAckRecProc(SppConnectType_e eConnectType, SppPacketType* ptPacket
 	SppMemType_t* ptPrev = NULL;
 	SppMemType_t* ptNext = NULL;
 	SppMemType_t* ptFree = NULL;  
+
+    UINT32 u32_time_out = 100;
+
     if (ptPacket == NULL)
     {
     	return;
@@ -990,8 +996,9 @@ static void SppAckRecProc(SppConnectType_e eConnectType, SppPacketType* ptPacket
 		return ;
 	}
 	ptTmp=ptAckCheckListCur;
-	while((ptTmp) != NULL)
-	{ 		
+	while(((ptTmp) != NULL) && (u32_time_out > 0))
+	{
+        u32_time_out--; 		
 		if(ptTmp->u8Sn == ptPacket->u8Sn)
         {
             if ((ptTmp->u8Type == SPP_PACKET_TYPE_BLOCK)
@@ -1409,25 +1416,26 @@ SPPErrorCode_e SppInit(SppConnectType_e eConnectType)
 	eRet = SppComOpen(eConnectType);
 	if(SPP_FAILURE==eRet)
 	{
+        ApiLogPrint(LOG_ERR,"SppComOpen failed");
 		return eRet;
 	}
 
 	if(SPP_FAILURE==eRet)
 	{
+        ApiLogPrint(LOG_ERR,"DiasSppcInitSendMutex failed");
 		return eRet;
 	}
 
 	if(eConnectType == SPP_CONNECT_TYPE_MCU_4G)
 	{
 		gptSppSendListMcu4G = NULL;
+        gptSppCheckAckListMcu4G = NULL;
 	}
 	else if(eConnectType == SPP_CONNECT_TYPE_MCU_MPU)
 	{
 		gptSppSendListMcuMpu = NULL;
+        gptSppCheckAckListMcuMpu = NULL;
 	}
-    else
-    {
-    }
 
 
 
@@ -1563,27 +1571,24 @@ SPPErrorCode_e SppSetListener(SppConnectType_e eConnectType,UINT16 u16EventId,pf
 	}
     if(NULL == pSppcListener)
     {
+        ApiLogPrint(LOG_ERR,"pDiasSppcListener is NULL");  
 		return SPP_FAILURE;
     }
     
-	SppLockSendMutex(eConnectType);
-    if(u16EventId >= SPP_CALLBACK_MAX_COUNT)
+    for(u16Index=0; u16Index<sizeof(gatSppMsgProcList)/sizeof(SppMsgProc_t); u16Index++)
     {
-        ApiLogPrint(_LOG_TRACE, "SppSetListener u16EventId ERR \n");
-        return SPP_FAILURE;
+        if((0 == gatSppMsgProcList[u16Index].eConnectType)&&
+			(0 == gatSppMsgProcList[u16Index].u16EventId))
+        {
+			gatSppMsgProcList[u16Index].eConnectType=eConnectType;
+			gatSppMsgProcList[u16Index].u16EventId=u16EventId;
+			gatSppMsgProcList[u16Index].pFunCb = pSppcListener;
+            ApiLogPrint(LOG_INFO,"gatDiasSppMsgProcList set eConnectType %d u16EventId %d success",eConnectType,u16EventId);
+            return SPP_SUCCESS;
+        }
     }
-    if (gatSppMsgProcList[u16EventId].pFunCb == NULL)
-    {
-        gatSppMsgProcList[u16EventId].eConnectType=eConnectType;
-        gatSppMsgProcList[u16EventId].u16EventId=u16EventId;
-        gatSppMsgProcList[u16EventId].pFunCb = pSppcListener;
-    }
-    else
-    {
-        ApiLogPrint(_LOG_TRACE, "SppSetListener already\n");
-    }
-    SppUnlockSendMutex(eConnectType);
-    return SPP_SUCCESS;
+    ApiLogPrint(LOG_ERR,"gatDiasSppMsgProcList set u16EventId %d fail",u16EventId);
+    return SPP_FAILURE;
     
 #if 0
     for(u16Index=0; u16Index<sizeof(gatSppMsgProcList)/sizeof(SppMsgProc_t); u16Index++)

@@ -208,6 +208,8 @@ SppMemType_t* SppMemFindLastNode(SppMemType_t* ptMemList)
 {
     SppMemType_t* ptList = NULL;
     SppMemType_t*  ptNode = NULL;
+    UINT32 u32_timeout = 100;
+
     if (ptMemList == NULL)
     {
         return NULL;
@@ -215,9 +217,10 @@ SppMemType_t* SppMemFindLastNode(SppMemType_t* ptMemList)
     else
     {
         ptList = ptMemList;
-        while((ptList->next) != NULL)
+        while(((ptList->next) != NULL) && (u32_timeout != 0))
         {
             ptList = ptList->next;
+            u32_timeout--;
         }//find last one  
         return ptList;
     }
@@ -234,6 +237,7 @@ SppMemType_t* SppMemAddNode(SppMemType_t* ptMemList, SppMemType_t* ptNodeToAdd)
 {
     SppMemType_t* ptList = NULL;
     SppMemType_t*  ptNode = NULL;
+    UINT32 u32_timeout = 100;
 
     if(ptMemList == NULL)
 	{
@@ -254,9 +258,10 @@ SppMemType_t* SppMemAddNode(SppMemType_t* ptMemList, SppMemType_t* ptNodeToAdd)
 	else
 	{
         ptList = ptMemList;
-        while((ptList->next) != NULL)
+        while(((ptList->next) != NULL) && (u32_timeout != 0))
 		{
             ptList = ptList->next;
+            u32_timeout--;
         }//find last one		
         ptNode = (SppMemType_t*)SppMemMalloc(SPP_MEM_UINT_SIZE);
         if(ptNode == NULL)
@@ -291,12 +296,14 @@ SppMemType_t* SppMemDeleteNodebySN(SppMemType_t* ptMemList, UINT8 u8Sn)
 	SppMemType_t* ptPrev = NULL;
 	SppMemType_t* ptNext = NULL;
 	SppMemType_t* ptFree = NULL;
+    UINT32 u32_timeout = 100;
 
 	ptTmp = ptMemList;
     ptListCur = ptMemList;
 
-	while((ptTmp) != NULL)
+	while(((ptTmp) != NULL) && (u32_timeout != 0))
 	{ 
+        u32_timeout--;
 		if(u8Sn == ptTmp->u8Sn)
 		{	
 			ptPrev = ptTmp->prev;
@@ -347,11 +354,13 @@ SppMemType_t* SppMemRemoveOneNode(SppMemType_t* ptMemList, SppMemType_t* ptNodet
 	SppMemType_t* ptPrev = NULL;
 	SppMemType_t* ptNext = NULL;
 	SppMemType_t* ptFree = NULL;
+    UINT32 u32_timeout = 100;
 
 	ptTmp = ptMemList;
 
-	while((ptTmp) != NULL)
+	while(((ptTmp) != NULL) && (u32_timeout != 0))
 	{ 
+        u32_timeout--;
 		if(ptTmp==ptNodetoRemove)
 		{ 	
 			ptPrev = ptTmp->prev;
@@ -453,14 +462,16 @@ UINT32 SppMemGetListNum(SppMemType_t* ptMemList)
 {
 	SppMemType_t* ptNode = ptMemList;
 	UINT32 u32Num=0;
+    UINT32 u32_timeout = 100;
 		
 	if(NULL==ptNode)
 	{
 		return 0;
 	}
 
-	while((ptNode) != NULL)
+	while(((ptNode) != NULL) && (u32_timeout != 0))
 	{
+        u32_timeout--;
 		u32Num++;
         ptNode = ptNode->next;
     }

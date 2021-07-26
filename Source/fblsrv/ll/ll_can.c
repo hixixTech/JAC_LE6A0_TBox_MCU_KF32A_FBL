@@ -106,7 +106,7 @@ BOOL ApiCan1Rx(UINT8 u8Slot, UINT8* pu8Data,UINT32* pu32CanId)
 	switch (u8Slot)
 	{
 	case 0:
-		u8Target = 0x711;
+		u8Target = 0x777;
 		break;
 	case 1:
 		u8Target = 0x7DF;
@@ -286,6 +286,7 @@ void ApilLlFblFotaComMsgCb(UINT8 u8EventId, DcpdPackageFBLCom_t* ptData)
 
 	if(0 == gu8CanRevFlag)
 	{
+		ApiLogPrint(_LOG_TRACE,"ApilLlFblFotaComMsgCb Enter\n");
 		gu8FotaFlag = 1;
 		u8FotaRevFlag = 1;
 		u8FotaRevFlag1 = 1;
@@ -305,7 +306,7 @@ void ApilLlFblFotaComMsgCb(UINT8 u8EventId, DcpdPackageFBLCom_t* ptData)
 	tFotaData.u8Data.buf[5] = ptData->u8Data.buf[5];
 	tFotaData.u8Data.buf[6] = ptData->u8Data.buf[6];
 	tFotaData.u8Data.buf[7] = ptData->u8Data.buf[7];
-
+	ApiLogPrint(_LOG_TRACE,"%d,%d,%d,%d,%d,%d,%d,%d,%d\n",tFotaData.u16Cmd,tFotaData.u8Data.buf[0],tFotaData.u8Data.buf[1],tFotaData.u8Data.buf[2],tFotaData.u8Data.buf[3],tFotaData.u8Data.buf[4],tFotaData.u8Data.buf[5],tFotaData.u8Data.buf[6],tFotaData.u8Data.buf[7]);
 	if(0 == u8Flag)
 	{
 		ApiInitTimer(NCr_timer_handle,NCr_FotaTimeout);
@@ -400,6 +401,7 @@ bool ApilLlTx(const UINT8* pu8TxBufferData)
 	UINT8 i;
 	if(1 == u8FotaRevFlag)
 	{
+		ApiLogPrint(_LOG_TRACE,"Response for FOTA REQ\n");
 		tFotaData.u16Cmd = 0x077F;
 		tFotaData.u8Data.buf[0] = pu8TxBufferData[0];
 		tFotaData.u8Data.buf[1] = pu8TxBufferData[1];

@@ -308,7 +308,7 @@ void Mem_EED_PageHeadInit(void)
 
     s_st_pagenwm.backpage0.u32_addr = Mem_EED_GetFreeAddr();
     s_st_pagenwm.backpage1.u32_addr = Mem_EED_GetFreeAddr();
-    ApiLogPrint(0,"FBL:backpage0:%d,backpage1:%d\n",s_st_pagenwm.backpage0.u32_addr,s_st_pagenwm.backpage1.u32_addr);
+    ApiLogPrint(_LOG_DEBUG,"FBL:backpage0:%d,backpage1:%d\n",s_st_pagenwm.backpage0.u32_addr,s_st_pagenwm.backpage1.u32_addr);
 }
 /****************************************************************************/
 /**

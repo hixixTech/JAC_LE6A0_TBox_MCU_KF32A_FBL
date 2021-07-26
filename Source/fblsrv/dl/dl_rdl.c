@@ -32,6 +32,7 @@
 #include "ll_target.h"
 // #include "mcu_drv_flash.h"
 // #include "delay.h"
+#include "ecu_flash.h"
 
 /*---------------------------------------------------------------------------*/
 /* 类型定义                                                                  */

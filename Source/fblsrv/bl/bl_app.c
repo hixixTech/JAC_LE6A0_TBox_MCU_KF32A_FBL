@@ -28,6 +28,7 @@
 #include "dl_service.h"
 #include "bl_timer.h"
 #include "bl_mem.h"
+#include "os_log.h"
 // #include "mcu_drv_wdg.h"
 extern JumpToApp();
 
@@ -166,7 +167,7 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 			// ApiCanDeinit();
 			// ApiWdtSwtFeedDog();         /*周期喂狗*/
 			// ApiWdtHwtFeedDog();
-            ApiLogPrint(0,"FBL:READ FLHVLD FAIL！!\n");
+            ApiLogPrint(_LOG_DEBUG,"FBL:READ FLHVLD FAIL！!\n");
 			ApiLlApplicationPrestart();                                 /*关闭taub*/
 			JumpToApp();
             // asm("mov 0x00038000,r7 ");
@@ -181,7 +182,7 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 			// ApiWdtHwtFeedDog();
 			ApiLlApplicationPrestart();
             
-            ApiLogPrint(0,"FBL:about to jump！!\n");
+            ApiLogPrint(_LOG_DEBUG,"FBL:about to jump！!\n");
             ApiLogProcess();
             JumpToApp();
 			// asm("mov 0x00038000,r7 ");   /*后续改为宏LL_TARGET_SPECIFIC_JUMP*/
@@ -191,7 +192,7 @@ void ApiApplicationStart(void)           /*跳转app函数*/
 		{
             /* application is invalid (integrity on compatibility error) */
 			// ApiWdtSwtFeedDog();         /*周期喂狗*/
-            ApiLogPrint(0,"FBL:CAN NOT jump！!u8AppCheck[3]=%d\n",u8AppCheck[3]);
+            ApiLogPrint(_LOG_DEBUG,"FBL:CAN NOT jump！!u8AppCheck[3]=%d\n",u8AppCheck[3]);
 			gu8InvalidateFlag = 1;
 			ApiStopTimer(startup_timer_handle);
 		}

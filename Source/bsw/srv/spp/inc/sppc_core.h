@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "sppc_core_types.h"
+#include "type.h"
 
 #define SPP_ON  (1)
 #define SPP_OFF (0)

@@ -28,7 +28,7 @@
 #include "mem_ee.h"
 #include "ll_target.h"
 #include "ll_can.h"
-
+#include "os_log.h"
 /*---------------------------------------------------------------------------*/
 /* 类型定义                                                                  */
 /*---------------------------------------------------------------------------*/
@@ -852,14 +852,15 @@ void ApiDlAppSwitchToProgramming(void)
        The application usually sends a "wait", to avoid bus error during reset.
     */
 	s32Retval = ApiNvramReadSyncInd(EEPID_FLHVLD,EEPID_FLHVLD_LEN,&u8ReadFlag[0]);  /*读取刷新入口标志位*/
-
+    ApiLogPrint(_LOG_DEBUG,"s32Retval == %d!\n",s32Retval);
 	if(s32Retval == FALSE)
 	{
 		ApiNvramWritAsyncInd(EEPID_FLHVLD, EEPID_FLHVLD_LEN, &fill[0]);
 	}
 	
-    if ((s32Retval == OK) && (u8ReadFlag[0] == true))   /*如果刷新入口标志位为1*/
+    if ((s32Retval == TRUE) && (u8ReadFlag[0] == TRUE))   /*如果刷新入口标志位为1*/
     {
+        ApiLogPrint(_LOG_DEBUG,"FBL u8ReadFlag[0] == true!\n");
         tMsgResp.u8ServiceId = SID_DSC; /* for response */
 #ifndef DONT_SEND_POS_RESP_FOR_DSC_PS
         if(true == ApiDlDscEnterProgSession(0u))    /* do not suppress positive response */
