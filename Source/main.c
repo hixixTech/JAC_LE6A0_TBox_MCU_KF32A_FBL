@@ -197,7 +197,7 @@ void main(void)
         ApiTickTimers();
 		ApiWdtSwtFeedDog();         /*周期喂狗*/
 		ApiWdtHwtFeedDog();
-        ApiLogProcess();
+        // ApiLogProcess();
         // JumpToApp();//TEST
         if (tSemaphores.bProgrammingSession == false)  /*如果不是刷新会话，进行校验*/
         {

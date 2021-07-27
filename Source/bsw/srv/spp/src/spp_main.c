@@ -23,9 +23,9 @@ SppMemType_t *gptSppCheckAckListMcu4G = NULL;
 SppMemType_t *gptSppCheckAckListMcuMpu = NULL;
 SppMemType_t *gptSppCheckAckListMpu = NULL;
 
-SppConnMsgProc_t gatSppConnMsgProcList[SPP_CONNECT_MAX_COUNT];
-SppMsgProc_t gatSppMsgProcList[SPP_CALLBACK_MAX_COUNT];
-SppSendAckProc_t gatSppSendAckProcList[SPP_ACK_MAX_COUT];
+SppConnMsgProc_t gatSppConnMsgProcList[SPP_CONNECT_MAX_COUNT] = {0};
+SppMsgProc_t gatSppMsgProcList[SPP_CALLBACK_MAX_COUNT]= {0};
+SppSendAckProc_t gatSppSendAckProcList[SPP_ACK_MAX_COUT]= {0};
 //SppMsgBuffRec_t gatSppMsgRecList[SPP_CALLBACK_MAX_COUNT];
 
 

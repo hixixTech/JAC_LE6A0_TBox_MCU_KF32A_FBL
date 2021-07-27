@@ -83,6 +83,11 @@ SPP_BOOL SPP_Send_DCPD_MSG_TO_MPU_FOTA_FBL_COM_Event(const DcpdPackageFBLCom_t* 
     return sppc_AddEvent(SPP_USER_SEND_DCPD_MSG_TO_MPU_FOTA_FBL_COM_EVT, (SPP_Int8 *)data, sizeof(DcpdPackageFBLCom_t));
 }
 
+SPP_BOOL SPP_Add_DCPD_MSG_TO_MCU_FOTA_FBL_COM_Event_Listener(SPP_DCPD_MSG_TO_MCU_FOTA_FBL_COM_Callback cb)
+{
+	ApiSPPSetListener(SPP_USER_RECV_DCPD_MSG_TO_MCU_FOTA_FBL_COM_EVT, cb);
+	return SPP_TRUE;
+}
 /******************************************************************************
 *  function name | ApiSPPInit
 *  content       | initailise the spp
